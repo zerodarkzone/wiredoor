@@ -23,5 +23,6 @@
     "type=volume,source=wiredoor_node_modules,target=/workspaces/wiredoor/node_modules"
   ],
   "postCreateCommand": "npm install --recursive",
-  "remoteUser": "root"
+  "remoteUser": "root",
+  "capAdd": [ "NET_ADMIN" ]
 }
