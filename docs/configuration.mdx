@@ -1,0 +1,82 @@
+# Wiredoor Configuration
+
+Wiredoor is configured through environment variables passed to the container (e.g. via `docker-compose.yml`).
+This page describes all available configuration options.
+
+---
+
+## Environment Variables
+
+You can define your environment variables in a `.env` file and reference them in your `docker-compose.yml` like this:
+
+```dotenv
+TZ=America/New_York
+VPN_HOST=wiredoor.example.com
+VPN_PORT=51820
+VPN_SUBNET=10.12.1.0/24
+SERVER_CERTBOT_EMAIL=admin@example.com
+```
+
+In your `docker-compose.yml`
+
+```yaml filename="docker-compose.yml" copy
+env_file:
+  - .env
+```
+
+
+### Available Environment Variables
+
+| Variable | Description | Required | Example |
+|----------|-------------|----------|---------|
+| `TZ` | Timezone of the server |  ❌ Optional | `America/New_York` |
+| `VPN_HOST` | Public IP address or domain name of your Wiredoor server | ✅ Yes | `wiredoor.example.com` |
+| `VPN_PORT` | UDP port used for WireGuard connections | ✅ Yes | `51820` |
+| `VPN_SUBNET` | Subnet used for the VPN network | ✅ Yes | `10.12.1.0/24` |
+| `SERVER_CERTBOT_EMAIL` | Email used by Certbot to issue and renew Let's Encrypt certificates | ✅ Yes | `admin@example.com` |
+| `TCP_SERVICES_PORT_RANGE` | Port range used to expose TCP services via port mapping | ❌ Optional | `32760-32767` |
+| `DISABLE_CERTBOT` | If set to `true`, disables Let's Encrypt and uses only self-signed certificates | ❌ Optional | `true` |
+| `DISABLE_UI_AUTH` | If set to `true`, disables authentication on the Web UI (for testing only) | ❌ Optional | `false` |
+| `NODE_DEFAULT_ALLOWED_CIDR` | Default CIDR range allowed to access newly exposed services | ❌ Optional | `0.0.0.0/0` |
+| `NGINX_LOG_LEVEL` | NGINX log level (`info`, `warn`, `error`, `debug`) | ❌ Optional | `info` |
+| `WIREDOOR_ADMIN_PASSWORD` | Overrides the default auto-generated admin password on first run | ❌ Optional | `MySecurePassword123!` |
+
+---
+
+## Volumes
+
+| Container Path | Purpose | Example Host Mapping |
+|----------------|---------|----------------------|
+| `/data` | Persistent configuration and runtime data | `~/wiredoor-data` |
+| `/etc/letsencrypt` | Stores Let's Encrypt SSL certificates | `~/wiredoor-certbot` |
+| `/var/log/nginx` | (Optional) Stores NGINX access logs | `~/wiredoor-logs` |
+
+---
+
+## Network Ports
+
+| Port | Protocol | Purpose |
+|------|----------|---------|
+| `80` | TCP | HTTP traffic (used for Certbot validation) |
+| `443` | TCP | HTTPS traffic |
+| `51820` (default) | UDP | WireGuard VPN connection |
+| `32760-32767` (optional) | TCP | Port range for exposing TCP services (controlled via `TCP_SERVICES_PORT_RANGE`) |
+
+You can change the VPN port or the TCP service range, but make sure those ports are **open and accessible** from the internet or from the client network.
+
+---
+
+## Usage Tips
+
+- Use `WIREDOOR_ADMIN_PASSWORD` if you want to automate deployments without checking logs for the default credentials.
+- When using a local domain or IP, Let's Encrypt will fail. You can either set `DISABLE_CERTBOT=true` or accept self-signed certificates.
+- For internal-only environments, set `DISABLE_UI_AUTH=true` to avoid login screens (use with caution!).
+
+---
+
+## Security Notes
+
+- ⚠️ **Never expose your `.env` or `docker-compose.yml` with secrets in public repositories.**
+- ✅ Use a `.env` file to define your environment variables securely.
+- 📁 Make sure to add `.env` to your `.gitignore` and restrict read access to it using filesystem permissions (e.g., `chmod 600 .env`).
+- 🔒 Avoid hardcoding secrets or tokens in version-controlled files.

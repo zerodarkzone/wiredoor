@@ -1,0 +1,26 @@
+{
+  "name": "wiredoor",
+  "version": "1.0.0",
+  "description": "ingress-as-a-service platform that allows you to expose applications and services running in private or local networks to the internet—securely",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wiredoor/wiredoor.git"
+  },
+  "keywords": [
+    "self-hosted",
+    "ingress-as-a-service",
+    "private",
+    "services",
+    "kubernets",
+    "docker",
+    "VPN",
+    "WireGuard"
+  ],
+  "author": "Daniel Mesa",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/wiredoor/wiredoor/issues"
+  },
+  "homepage": "https://github.com/wiredoor/wiredoor#readme",
+  "workspaces": ["api", "ui"]
+}

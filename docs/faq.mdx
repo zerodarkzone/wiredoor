@@ -1,0 +1,66 @@
+# Frequently Asked Questions (FAQ)
+
+This page answers common questions about Wiredoor, how it works, and how to troubleshoot basic setup or usage issues.
+
+---
+
+### Do I need a public IP to use Wiredoor?
+
+Yes — the **Wiredoor Server** must be deployed on a machine with a **public IP address** or publicly reachable domain so it can receive traffic from the internet and connect to remote nodes.
+
+---
+
+### Do my services need public IPs?
+
+No — your **internal services do not need to be publicly accessible**. Wiredoor connects to them through a reverse VPN tunnel using WireGuard, which allows exposure from completely private networks.
+
+---
+
+### Is Wiredoor open-source?
+
+Yes! Both the server and CLI are fully open source. You can self-host everything and have full control over your infrastructure.
+
+---
+
+### Can I use Wiredoor without a public domain?
+
+Yes, but:
+
+- You will receive a **self-signed SSL certificate**
+- Browsers may show security warnings unless you manually trust the cert
+- You won’t be able to use Let's Encrypt
+
+---
+
+### Can I expose multiple services on the same domain?
+
+Yes. You can:
+
+- Expose **multiple services on different paths** using HTTP (e.g., `/app1`, `/app2`)
+- Or expose **different services on different subdomains** (e.g., `api.example.com`, `admin.example.com`)
+
+---
+
+### Can I run Wiredoor on a VPS?
+
+Absolutely. In fact, a Linux VPS is the recommended environment for hosting the Wiredoor Server.
+
+---
+
+### Can I use Wiredoor in air-gapped environments?
+
+Yes, if the node can **initiate outbound connections** to the Wiredoor Server (even via a proxy or firewall rule). However, features like Let's Encrypt won't work without internet access.
+
+---
+
+### Is there a limit to how many services I can expose?
+
+No fixed limit. It depends on your server's capacity and how many ports or domains you configure.
+
+---
+
+### What happens if I restart the server or a node?
+
+- The VPN tunnel will automatically reconnect
+- Exposed services will be restored
+- No manual reconfiguration is needed

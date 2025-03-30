@@ -1,0 +1,25 @@
+services:
+  wiredoor:
+    image: ghcr.io/wiredoor/server:latest
+    container_name: wiredoor
+    cap_add:
+      - NET_ADMIN
+      - SYS_ADMIN
+    environment:
+      TZ: America/New_York
+      VPN_HOST: 5.161.99.238
+      VPN_PORT: 51820
+      VPN_SUBNET: 10.12.1.0/24
+      SERVER_CERTBOT_EMAIL: dmesa1994@gmail.com
+#      TCP_SERVICES_PORT_RANGE: 32760-32767 # Port range definition to expose TCP services if needed
+    restart: unless-stopped
+    volumes:
+      - $PWD/wiredoor:/etc/wireguard
+      - $PWD/certbot:/etc/letsencrypt
+    ports:
+      - 80:80/tcp
+      - 443:443/tcp
+      - 51820:51820/udp
+#      - 32760-32767 # Must match with TCP_SERVICES_PORT_RANGE defined in environment
+    sysctls:
+      - net.ipv4.ip_forward=1

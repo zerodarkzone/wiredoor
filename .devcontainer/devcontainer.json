@@ -1,0 +1,21 @@
+{
+  "name": "Wiredoor Dev Container",
+  "image": "ghcr.io/wiredoor/dev-container:latest",
+  "workspaceFolder": "/workspaces/wiredoor",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "Vue.volar",
+        "dbaeumer.vscode-eslint",
+        "EditorConfig.EditorConfig",
+        "esbenp.prettier-vscode"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "eslint.validate": ["typescript", "javascript", "vue"]
+      }
+    }
+  },
+  "postCreateCommand": "npm install --recursive",
+  "remoteUser": "root"
+}

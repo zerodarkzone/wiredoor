@@ -1,0 +1,143 @@
+# Nodes in Wiredoor
+
+**Nodes** are the clients that connect to the Wiredoor Server via a secure WireGuard tunnel. They represent the entry point for exposing services that live inside private networks, devices, or environments that are not directly reachable from the internet.
+
+This document explains how nodes work, how to connect them, and the difference between a regular node and a gateway node.
+
+---
+
+## What is a Node?
+
+When you create a node in Wiredoor:
+
+- A **WireGuard peer** is generated with a unique private key and assigned a static VPN IP (e.g. `10.12.1.3`).
+- A **configuration file** is created, compatible with the official WireGuard client.
+- An **API token** is issued, allowing the node to interact with Wiredoor using `wiredoor-cli`.
+
+Once connected, the node can securely send and receive traffic through the Wiredoor Server.
+
+```mermaid
+flowchart LR
+  public[(Internet)]
+  wiredoor(Wiredoor Server)
+  subgraph Private network
+    clients@{ shape: procs, label: "Client Servers Nodes"}
+  end
+
+  public <--> |Traffic over SSL| wiredoor
+  wiredoor <--> |Traffic| clients
+  clients ==> |Tunnel| wiredoor
+```
+
+---
+
+## Connecting a Node
+
+There are multiple ways to connect a node:
+
+### 1. Manual Connection (Any OS)
+
+After creating a node in the Web UI:
+
+- Download the WireGuard configuration file (`.conf`)
+- Import it into any [WireGuard client](https://www.wireguard.com/install/)
+- Activate the connection
+
+This gives you a working VPN tunnel between your node and Wiredoor.
+
+### 2. Using `wiredoor-cli` (Recommended)
+
+`wiredoor-cli` is a lightweight client built in Go that can:
+
+- Establish and manage the WireGuard connection
+- Interact with the Wiredoor API
+- Automatically expose or hide services from the command line
+
+To use it:
+
+1. Create a node in the Web UI
+2. Copy the generated **token**
+3. Run `wiredoor-cli` on the node and provide the token
+4. Use CLI commands to connect, expose services, check status, etc.
+
+(See [CLI documentation](./cli) for details)
+
+---
+
+## Node Lifecycle
+
+Each node can be:
+
+- 🟢 **Connected** — VPN tunnel is active and services can be exposed
+- 🔴 **Disconnected** — VPN tunnel is disabled, services are not reachable
+- ♻️ **Regenerated** — You can reset the WireGuard config and rotate the API token at any time
+- 🗑️ **Deleted** — Permanently removes the node and all associated config
+
+---
+
+## What is a Gateway Node?
+
+A **Gateway Node** is a special type of node that acts like a site-to-site VPN bridge.
+
+```mermaid
+flowchart LR
+  public[(Internet)]
+  wiredoor(Wiredoor Server)
+  subgraph Private network
+    direction RL
+    gateway[Gateway Server]
+    clients@{ shape: procs, label: "Servers"}
+  end
+
+  public -- Traffic -->
+  wiredoor <-- Traffic -->
+  gateway ==> |Tunnel| wiredoor
+  gateway <--> |Traffic| clients
+```
+
+Instead of only exposing services running on the node itself, a Gateway Node can:
+
+- Forward traffic to **any host** in its local subnet (e.g. `192.168.1.100`)
+- Allow Wiredoor to route external traffic to **multiple internal devices**, not just the node
+
+> This is ideal for exposing:
+> - Devices without WireGuard support (e.g. IoT, PLCs, cameras)
+> - Services running on other LAN servers or virtual machines
+> - Kubernetes or Docker networks
+
+You can define allowed subnets when creating or editing a gateway node.
+
+---
+
+## Managing Nodes in the UI
+
+From the Web UI, you can:
+
+- 📥 Download the WireGuard config
+- 🔑 View or regenerate the API token
+- 🔌 Connect or disconnect the node
+- ♻️ Reset WireGuard config and rotate the API token
+- 🧭 View its VPN IP and connection status
+- 🌐 Expose/Disable services
+- 🔍 See which services are currently exposed
+
+---
+
+## Example Use Cases
+
+| Use Case | Node Type | Description |
+|----------|-----------|-------------|
+| Exposing a local dev server | Standard Node | VPN tunnel from a laptop or VM |
+| Self-hosted dashboard on a NAS | Standard Node | Tunnel directly from the NAS device |
+| Accessing an entire factory LAN | Gateway Node | Route to multiple devices behind a router |
+| Publishing Kubernetes services | Gateway Node | Use Helm chart to tunnel from inside the cluster |
+| Headless IoT Device | Gateway Node | Expose a device that cannot run WireGuard directly (via another node on the same LAN) |
+
+---
+
+## Next Steps
+
+- Use [`wiredoor-cli`](./cli) to connect and expose services
+- [Expose services](./usage) from your connected nodes
+- Deploy a [Docker Gateway](./docker-gateway) or [Kubernetes Gateway](./kubernetes-gateway)
+

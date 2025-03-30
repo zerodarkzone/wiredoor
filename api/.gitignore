@@ -1,0 +1,13 @@
+.env
+public
+dist
+db.sqlite
+# IDE specific files
+.idea/
+.vscode/
+
+# Locally installed dependencies
+/node_modules/
+/log/
+
+*.log

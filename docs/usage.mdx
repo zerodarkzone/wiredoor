@@ -1,0 +1,109 @@
+# Using Wiredoor
+
+Once Wiredoor Server is installed and running, you can start using the **Web UI** to configure domains, manage nodes, and expose services.
+
+This guide walks you through the most common tasks you'll perform with Wiredoor.
+
+---
+
+## Domains
+
+Domains are used to route traffic to your exposed services.
+
+### Public Domains (Recommended)
+
+- Should point to your Wiredoor server's public IP (use an A or CNAME DNS record)
+- Enable automatic SSL certificates via Let's Encrypt
+- Can be used to expose HTTP, TCP, or UDP services
+
+### Internal or Local Domains
+
+- Can be added even without a public DNS record (e.g. `local.service`, `test.app`)
+- Will use **self-signed SSL certificates**
+- Still support service exposure but will show browser warnings unless trusted
+
+> ✅ **Tip:** You can register as many domains as needed and map multiple services to each.
+
+---
+
+## Nodes
+
+Nodes represent systems that connect to Wiredoor via WireGuard (clients or gateways).
+
+When you create a node, Wiredoor will:
+
+- Generate a unique **WireGuard peer config**
+- Assign a static **VPN IP**
+- Create an **API token** to use with `wiredoor-cli`
+
+You can:
+
+- 🔄 Connect or disconnect a node from the UI
+- 🔓 Expose or hide services at any time
+- ⚙️ Configure a node as a **Gateway** to route traffic to its entire local subnet
+
+### Gateway Nodes
+
+If a node is marked as a **Gateway**, it acts like a site-to-site VPN. This means you can expose services from **any host** on the local network behind that node.
+
+Use cases:
+- Exposing devices on a LAN (IoT, cameras, servers)
+- Bridging private Kubernetes clusters or Docker containers
+- Accessing legacy infrastructure without deploying agents everywhere
+
+---
+
+## Exposing Services
+
+Once a node is connected, you can expose services to the outside world.
+
+### Types of Services
+
+| Type | Description |
+|------|-------------|
+| **HTTP** | Standard web services (APIs, dashboards, UIs, etc.) |
+| **TCP** | Custom services (databases, SSH, etc.) |
+| **UDP** | Lightweight protocols (VoIP, game servers, etc.) |
+
+You define:
+
+- The **protocol** (HTTP, TCP, UDP)
+- The **port** on the internal node or gateway
+- The **domain name** and optionally a route/path
+- Optional **IP/CIDR restrictions** for access control
+
+Wiredoor handles:
+
+- Routing traffic to the right node/service
+- Terminating SSL (Let’s Encrypt or self-signed)
+- Keeping the VPN tunnel alive
+
+---
+
+## Certificates
+
+Wiredoor automatically provisions and renews SSL certificates using Let's Encrypt **if the domain is publicly resolvable**.
+
+If not:
+
+- A **self-signed certificate** will be generated instead
+- Your browser may show a warning unless the cert is trusted
+
+You can check certificate status and renewal from the Domains section.
+
+---
+
+## Example Use Cases
+
+- Expose a local `Node-RED` instance running on a Raspberry Pi
+- Publish a private Grafana dashboard from an on-prem server
+- Access your Kubernetes API server remotely using the Gateway chart
+- Route traffic to an internal device like a camera or PLC
+
+---
+
+## Next Steps
+
+- Learn how to [connect your first node](./nodes.md)
+- Use [`wiredoor-cli`](./cli.md) for automation and scripting
+- Deploy a [Docker Gateway](./docker-gateway.md) or [Kubernetes Gateway](./kubernetes-gateway.md)

@@ -1,0 +1,66 @@
+import { Inject, Service } from 'typedi';
+import { PersonalAccessTokenRepository } from '../repositories/personal-access-token-repository';
+import jwt from 'jsonwebtoken';
+import config from '../config';
+import { PersonalAccessToken, PersonalAccessTokenWithToken } from '../database/models/personal-access-token';
+import { CreatePATType, PatFilterQueryParams } from '../validators/pat-validator';
+import { PatQueryFilter } from '../repositories/filters/pat-query-filter';
+
+@Service()
+export class PatService {
+  constructor (
+    @Inject() private readonly personalAccessTokenRepository: PersonalAccessTokenRepository,
+    @Inject() private readonly patFilter: PatQueryFilter
+  ) {}
+
+  async getPATs (nodeId: number, params: PatFilterQueryParams) {
+    return this.patFilter.apply({ ...params, nodeId });
+  }
+
+  getPatById(id: number, relations: string[] = []) {
+    return this.personalAccessTokenRepository.findOne({
+      where: {
+        id,
+      },
+      relations
+    })
+  }
+
+  async createNodePAT(nodeId: number, params: CreatePATType): Promise<PersonalAccessTokenWithToken> {
+    const pat = await this.personalAccessTokenRepository.save({ ...params, nodeId });
+
+    const token = jwt.sign(
+      { 
+        id: pat.id,
+        type: 'client',
+        // node: node.name,
+        // address: node.address,
+      },
+      config.jwt.secret
+    );
+
+    return {
+      ...pat,
+      token,
+    }
+  }
+
+  public async updatePat(id: number, params: Partial<CreatePATType>): Promise<PersonalAccessToken> {
+    const pat = await this.personalAccessTokenRepository.save({
+      id,
+      ...params
+    });
+
+    return pat;
+  }
+
+  async revokeToken(id: number) {
+    return this.updatePat(id, { revoked: true });
+  }
+
+  async deletePat(id: number) {
+    await this.personalAccessTokenRepository.delete(id);
+
+    return 'Deleted!';
+  }
+}

@@ -1,0 +1,139 @@
+# Wiredoor CLI
+
+`wiredoor-cli` is a lightweight command-line client written in Go, designed to interact with the Wiredoor Server.
+
+It allows you to:
+
+- Connect your node to the VPN
+- Expose or unexpose services
+- Check VPN status and connection logs
+- Automate service exposure on boot
+- Authenticate via token-based access
+
+This CLI is especially useful for nodes running in headless environments (e.g., servers, containers, Raspberry Pi, etc.).
+
+---
+
+## Installation
+
+Download the latest release from the [Releases](https://github.com/wiredoor/wiredoor-cli/releases) page
+
+## Common Commands
+
+### Login and Create Node
+
+The fastest way to onboard a new system as a node.
+
+```bash
+wiredoor login --url https://your-wiredoor-instance-or-ip
+```
+
+- Prompts for your admin credentials (username/password)
+- Prompts you to assign a name to the node. Defaults to the machine’s hostname.
+- Retrieves and saves the node’s token to `/etc/wiredoor/config.ini`
+
+### Connect to Wiredoor Node
+
+Optionally you can connect to already created node:
+
+```bash
+wiredoor connect --url https://your-wiredoor-instance-or-ip --token YOUR_NODE_TOKEN
+```
+
+### Regenerate Access
+
+Regenerates the current node’s **WireGuard** keys and **API token**:
+
+```bash
+wiredoor regenerate
+```
+
+Expected downtime: ~1-3 seconds
+
+- Updates the remote config on the Wiredoor Server
+- Replaces local config in `/etc/wiredoor/config.ini`
+- Restarts the VPN connection with minimal downtime
+
+### Expose TCP Services
+
+Exposes the local TCP service running on port 1883 over Wiredoor
+
+```bash
+wiredoor tcp my-tcp-service --port 1883
+```
+
+Optional:
+
+```bash
+--proto udp           # Optional: change protocol (default: tcp)
+--domain example.com  # Optional: set a domain (default: uses Wiredoor public IP)
+--use-ssl             # Optional: enable SSL termination for TCP services
+```
+
+- Exposes the local service running on port 1883 over Wiredoor
+- The public port is assigned automatically
+
+### Expose HTTP Services
+
+```bash
+wiredoor http my-website --domain website.com --port 3000
+```
+
+Optional:
+
+```bash
+--path /ui     # Defaults to "/"
+--proto https   # Defaults to "http"
+```
+
+- Exposes my-website running on http://localhost:3000 under https://website.com/
+- Automatically enables SSL using Let's Encrypt (if the domain is public and resolves wiredoor IP, if not it uses self-signed certificates)
+
+### Disable Public Access
+
+```bash
+wiredoor disable http my-website
+```
+
+Disables (but does not delete) the exposed service, making it inaccessible from outside.
+
+### Enable Public Access
+
+```bash
+wiredoor enable http my-website
+```
+
+Re-enables a service that was previously disabled, without redefining it.
+
+### Check status
+
+Prints the current state
+
+```bash
+wiredoor status
+```
+
+- WireGuard tunnel status (connected/disconnected)
+- Exposed services (name, protocol, port, domain, status)
+- Node info (Name, VPN IP, connection time)
+
+```text
+ ✔ WireGuard Connected
+🖥️ Node: my-hostname (10.0.0.4)
+🌐 Services:
+- my-website [HTTP] → https://website.com → localhost:3000
+```
+
+### Disconnect 
+
+```bash
+wiredoor disconnect
+```
+
+Fully shuts down the VPN connection and marks the node as disconnected in the Web UI.
+
+## Config File
+
+After first login or connection, the CLI stores configuration under: `/etc/wiredoor/config.ini`
+
+You can edit it manually or regenerate it by running `wiredoor login`, `wiredoor connect` or `wiredoor regenerate` again.
