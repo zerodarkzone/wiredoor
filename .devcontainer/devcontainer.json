@@ -1,6 +1,7 @@
 {
   "name": "Wiredoor Dev Container",
   "image": "ghcr.io/wiredoor/dev-container:latest",
+  "overrideCommand": false,
   "workspaceFolder": "/workspaces/wiredoor",
   "customizations": {
     "vscode": {
@@ -16,6 +17,11 @@
       }
     }
   },
+  "mounts": [
+    "type=volume,source=wiredoor_api_node_modules,target=/workspaces/wiredoor/api/node_modules",
+    "type=volume,source=wiredoor_ui_node_modules,target=/workspaces/wiredoor/ui/node_modules",
+    "type=volume,source=wiredoor_node_modules,target=/workspaces/wiredoor/node_modules"
+  ],
   "postCreateCommand": "npm install --recursive",
   "remoteUser": "root"
 }

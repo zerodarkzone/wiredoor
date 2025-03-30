@@ -6,31 +6,6 @@ import config from './config';
 import FileManager from './utils/file-manager';
 
 export async function loadApp(): Promise<express.Application> {
-  // process.on("exit", (code) => {
-  //   console.warn(`⚠️ Process exiting with code: ${code}`);
-  //   process.exit()
-  // });
-
-  // process.on("SIGTERM", () => {
-  //   console.warn("🚨 SIGTERM signal recieved. process finishing...");
-  //   process.exit()
-  // });
-
-  // process.on("SIGINT", () => {
-  //   console.warn("🔴 SIGINT signal recieved. process finishing...");
-  //   process.exit()
-  // });
-
-  // process.on("unhandledRejection", (reason, promise) => {
-  //   console.error("⚠️ Unhandled Rejection at:", promise, "reason:", reason);
-  //   process.exit()
-  // });
-
-  // process.on("uncaughtException", (err) => {
-  //   console.error("❌ Uncaught Exception:", err);
-  //   process.exit()
-  // });
-
   const app = express();
 
   await providers(app);

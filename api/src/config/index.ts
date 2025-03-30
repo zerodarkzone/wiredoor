@@ -16,10 +16,6 @@ iptables -A FORWARD -i wg0 -j ACCEPT;
 iptables -A FORWARD -o wg0 -j ACCEPT;
 `;
 
-// Solo Permitir conexiones desde el servidor a los clientes (Bloquear trafico entre clientes)
-// iptables -A FORWARD -i wg0 -o wg0 -s ${subnet} -d ${subnet} -j REJECT;
-// iptables -A FORWARD -i wg0 -p tcp -s ${IP_CIDR.getInterfaceIp(subnet)} -j ACCEPT;
-
 const defaultPreDownScript = ``;
 const defaultPostDownScript = `
 iptables -t nat -D POSTROUTING -s ${subnet} -o eth0 -j MASQUERADE;

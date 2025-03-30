@@ -15,6 +15,7 @@ COPY resources/supervisor /etc/supervisor/
 
 RUN mkdir -p /var/log/supervisor \
   && mkdir -p /var/www/letsencrypt \
+  && mkdir -p /data \
   && rm -f /etc/nginx/conf.d/stream.conf \
   && touch /var/log/supervisor/app.stdout.log \
   && ln -sf /dev/stdout /var/log/supervisor/app.stdout.log \
@@ -23,7 +24,10 @@ RUN mkdir -p /var/log/supervisor \
 
 FROM base AS dev-container
 
-RUN apk add --update git nano curl
+RUN apk add --update git nano curl bash \
+  && rm -f /etc/supervisor/conf.d/app.conf
+
+CMD [ "bash", "-c", "/usr/bin/supervisord -ns -c /etc/supervisor/supervisord.conf" ]
 
 FROM base AS development
 
@@ -62,8 +66,6 @@ COPY --chown=node:node ui/. .
 RUN npm run build
 
 FROM base AS production
-
-# ENV DEBUG=*
 
 COPY --chown=node:node --from=build /app/node_modules /app/node_modules
 COPY --chown=node:node --from=build /app/dist /app/dist

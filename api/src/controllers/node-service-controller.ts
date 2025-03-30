@@ -1,4 +1,4 @@
-import { Body, Delete, Get, JsonController, Param, Patch, Post, QueryParam, QueryParams, Req, Res, UseBefore } from 'routing-controllers';
+import { Body, Delete, Get, JsonController, Param, Patch, Post, QueryParam, QueryParams, UseBefore } from 'routing-controllers';
 import { Inject, Service } from 'typedi';
 import Joi from 'joi';
 import { celebrate } from 'celebrate';
@@ -41,7 +41,6 @@ export default class NodeServiceController extends BaseController {
     @Param('nodeId') nodeId: string,
     @QueryParams() params: HttpServiceFilterQueryParams,
   ) {
-    // console.log(user);
     return this.httpServicesService.getNodeHttpServices(+nodeId, params);
   }
 
@@ -134,17 +133,6 @@ export default class NodeServiceController extends BaseController {
     return this.httpServicesService.pingHttpServiceBackend(+serviceId, path);
   }
 
-  // @Get('/:nodeId/http/:serviceId/logs/stream')
-  // @UseBefore(SetupSSE)
-  // async getRealTimeLogs(
-  //   @Param('nodeId') nodeId: string,
-  //   @Param('serviceId') serviceId: string,
-  //   @Req() req: Request,
-  //   @Res() res: ResponseSSE
-  // ): Promise<ResponseSSE> {
-  //   return this.httpServicesService.responseRealTimeLogs(+serviceId, res);
-  // }
-
   @Get('/tcp')
   @UseBefore(
     celebrate({
@@ -166,7 +154,6 @@ export default class NodeServiceController extends BaseController {
     @Param('nodeId') nodeId: string,
     @QueryParams() params: TcpServiceFilterQueryParams,
   ) {
-    // console.log(user);
     return this.tcpServicesService.getNodeTcpServices(+nodeId, params);
   }
 
@@ -249,24 +236,4 @@ export default class NodeServiceController extends BaseController {
   ) {
     return this.tcpServicesService.deleteTcpService(+serviceId);
   }
-
-  // @Get('/:nodeId/tcp/:serviceId/ping')
-  // async pingTcpService(
-  //   @Param('nodeId') nodeId: string,
-  //   @Param('serviceId') serviceId: string,
-  //   @QueryParam('path') path?: string,
-  // ) {
-  //   return this.tcpServicesService.pingTcpServiceBackend(+serviceId, path);
-  // }
-
-  // @Get('/:nodeId/tcp/:serviceId/logs/stream')
-  // @UseBefore(SetupSSE)
-  // async getRealTimeLogs(
-  //   @Param('nodeId') nodeId: string,
-  //   @Param('serviceId') serviceId: string,
-  //   @Req() req: Request,
-  //   @Res() res: ResponseSSE
-  // ): Promise<ResponseSSE> {
-  //   return this.tcpServicesService.responseRealTimeLogs(+serviceId, res);
-  // }
 }
