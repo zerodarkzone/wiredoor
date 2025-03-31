@@ -8,6 +8,7 @@ import { PersonalAccessTokenRepository } from '../../repositories/personal-acces
 import { PatService } from '../../services/pat-service';
 import { makePATData } from './stubs/pat.stub';
 import { PatQueryFilter } from '../../repositories/filters/pat-query-filter';
+import { PersonalAccessToken } from '../../database/models/personal-access-token';
 
 let app;
 let dataSource: DataSource;
@@ -17,9 +18,7 @@ beforeAll(async () => {
   dataSource = Container.get('dataSource');
 });
 
-afterAll(async () => {
-  app.close && (await app.close());
-});
+afterAll(async () => {});
 
 describe('Personal Access Token Service', () => {
   let repository: PersonalAccessTokenRepository;
@@ -60,7 +59,7 @@ describe('Personal Access Token Service', () => {
 
       const result = await service.getPATs(node.id, {});
 
-      expect(result.length).toEqual(1);
+      expect((result as PersonalAccessToken[]).length).toEqual(1);
       expect(result[0].name).toEqual(pat.name);
     });
   });
@@ -113,7 +112,7 @@ describe('Personal Access Token Service', () => {
       const patData = makePATData();
       const pat = await repository.save({ ...patData, nodeId: node.id });
 
-      const result = await service.revokeToken(pat.id);
+      await service.revokeToken(pat.id);
 
       const revoked = await service.getPatById(pat.id);
 
@@ -126,7 +125,7 @@ describe('Personal Access Token Service', () => {
       const patData = makePATData();
       const pat = await repository.save({ ...patData, nodeId: node.id });
 
-      const result = await service.deletePat(pat.id);
+      await service.deletePat(pat.id);
 
       // await expect(service.getPatById(pat.id)).rejects.toBeInstanceOf(NotFoundError);
       const deleted = await service.getPatById(pat.id);

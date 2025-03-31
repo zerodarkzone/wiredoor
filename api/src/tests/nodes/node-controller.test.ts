@@ -10,9 +10,7 @@ beforeAll(async () => {
   request = supertest(app);
 });
 
-afterAll(async () => {
-  await app.close();
-});
+afterAll(async () => {});
 
 describe('Nodes Management API', () => {
   describe('GET /api/nodes', () => {

@@ -9,9 +9,7 @@ beforeAll(async () => {
   request = supertest(app);
 });
 
-afterAll(async () => {
-  await app.close();
-});
+afterAll(async () => {});
 
 describe('API Auth Endpoint', () => {
   describe('POST /api/auth', () => {

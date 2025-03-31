@@ -39,9 +39,7 @@ beforeAll(async () => {
   dataSource = Container.get('dataSource');
 });
 
-afterAll(async () => {
-  await app.close();
-});
+afterAll(async () => {});
 
 describe('HTTP Services Service', () => {
   let repository: HttpServiceRepository;

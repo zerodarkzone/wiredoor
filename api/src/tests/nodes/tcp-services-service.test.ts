@@ -30,6 +30,8 @@ import { DomainRepository } from '../../repositories/domain-repository';
 import { DomainsService } from '../../services/domains-service';
 import { DomainQueryFilter } from '../../repositories/filters/domain-query-filter';
 import { SSLTermination } from '../../database/models/domain';
+import { TcpService } from '../../database/models/tcp-service';
+import { PagedData } from '../../repositories/filters/repository-query-filter';
 
 let app;
 let dataSource: DataSource;
@@ -39,9 +41,7 @@ beforeAll(async () => {
   dataSource = Container.get('dataSource');
 });
 
-afterAll(async () => {
-  app.close && (await app.close());
-});
+afterAll(async () => {});
 
 describe('TCP Services Service', () => {
   let repository: TcpServiceRepository;
@@ -216,12 +216,12 @@ describe('TCP Services Service', () => {
 
       const result = await service.getNodeTcpServices(node.id, {});
 
-      expect(result.length).toEqual(1);
+      expect((result as TcpService[]).length).toEqual(1);
       expect(result[0].name).toEqual(tcpService.name);
     });
     it('should list TCP Services paginated for certain node', async () => {
       const serviceData = makeTcpServiceData();
-      const tcpService = await repository.save({
+      await repository.save({
         ...serviceData,
         port: 15001,
         nodeId: node.id,
@@ -229,7 +229,7 @@ describe('TCP Services Service', () => {
 
       const result = await service.getNodeTcpServices(node.id, { limit: 1 });
 
-      expect(result.data.length).toEqual(1);
+      expect((result as PagedData<TcpService>).data.length).toEqual(1);
     });
   });
 

@@ -1,5 +1,6 @@
 {
   "name": "wiredoor",
+  "private": true,
   "version": "1.0.0",
   "description": "ingress-as-a-service platform that allows you to expose applications and services running in private or local networks to the internet—securely",
   "repository": {
@@ -22,5 +23,9 @@
     "url": "https://github.com/wiredoor/wiredoor/issues"
   },
   "homepage": "https://github.com/wiredoor/wiredoor#readme",
-  "workspaces": ["api", "ui"]
+  "workspaces": [
+    "api",
+    "ui",
+    "shared"
+  ]
 }

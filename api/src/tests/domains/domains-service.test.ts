@@ -24,9 +24,7 @@ beforeAll(async () => {
   dataSource = Container.get('dataSource');
 });
 
-afterAll(async () => {
-  await app.close();
-});
+afterAll(async () => {});
 
 describe('Domains Service', () => {
   let repository: DomainRepository;
