@@ -2,6 +2,7 @@ import { faker } from '@faker-js/faker';
 import { TcpServiceType } from '../../../validators/tcp-service-validator';
 import config from '../../../config';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const makeTcpServiceData = (params?: any): TcpServiceType => {
   let min = 15000;
   let max = 15000;
@@ -19,6 +20,6 @@ export const makeTcpServiceData = (params?: any): TcpServiceType => {
     backendPort: params?.backendPort || faker.internet.port(),
     port: params?.port || faker.number.int({ min, max }),
     ssl: params?.ssl || false,
-    allowedIps: params?.allowedIps || []
-  }
-}
+    allowedIps: params?.allowedIps || [],
+  };
+};

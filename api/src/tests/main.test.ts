@@ -1,7 +1,11 @@
 import { loadApp } from '../main';
 import supertest from 'supertest';
-import { mockGenPrivateKey, mockGenPublicKey, mockQuickUp, mockSaveToFile } from './.jest/global-mocks';
-import config from '../config';
+import {
+  mockGenPrivateKey,
+  mockGenPublicKey,
+  mockQuickUp,
+  mockSaveToFile,
+} from './.jest/global-mocks';
 
 let app;
 let request;
@@ -12,7 +16,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  app.close && (await app.close());
+  await app.close();
 });
 
 describe('main', () => {
@@ -24,7 +28,12 @@ describe('main', () => {
   });
   describe('VPN Initialization', () => {
     it('should re-generate or initialize vpn config', async () => {
-      expect(mockSaveToFile).toHaveBeenCalledWith('/etc/wireguard/wg0.conf', expect.any(String), 'utf-8', 0o600);
+      expect(mockSaveToFile).toHaveBeenCalledWith(
+        '/etc/wireguard/wg0.conf',
+        expect.any(String),
+        'utf-8',
+        0o600,
+      );
       expect(mockQuickUp).toHaveBeenCalled();
     });
   });

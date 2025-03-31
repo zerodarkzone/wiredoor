@@ -8,6 +8,6 @@ export const makeHttpServiceData = (params?: any): HttpServiceType => {
     pathLocation: params?.pathLocation || '/',
     backendProto: params?.backendProto || 'http',
     backendPort: params?.backendPort || 80,
-    allowedIps: params?.allowedIps || []
-  }
-}
+    allowedIps: params?.allowedIps || [],
+  };
+};

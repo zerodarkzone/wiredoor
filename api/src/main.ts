@@ -1,6 +1,6 @@
-import "reflect-metadata";
+import 'reflect-metadata';
 import path from 'path';
-import express from "express";
+import express from 'express';
 import providers from './providers';
 import config from './config';
 import FileManager from './utils/file-manager';

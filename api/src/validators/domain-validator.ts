@@ -4,7 +4,7 @@ import config from '../config';
 import { FilterQueryDto } from '../repositories/filters/repository-query-filter';
 import Net from '../utils/net';
 
-export const nslookupResolvesServerIp = async (c: string) => {
+export const nslookupResolvesServerIp = async (c: string): Promise<string> => {
   if (c) {
     const lookup = await Net.lookupIncludesThisServer(c);
 
@@ -16,15 +16,15 @@ export const nslookupResolvesServerIp = async (c: string) => {
             path: ['domain'],
             message: `nslookup doesn't resolves your server IP: ${config.wireguard.host}`,
             type: 'Error',
-          }
+          },
         ],
-        null
-      )
+        null,
+      );
     }
   }
 
   return c;
-}
+};
 
 export interface DomainType {
   domain: string;
@@ -38,22 +38,30 @@ export interface DomainFilterQueryParams extends FilterQueryDto {
   orderBy?: string;
 }
 
-export const domainFilterValidator: ObjectSchema<DomainFilterQueryParams> = Joi.object({
-  limit: Joi.number().optional(),
-  page: Joi.number().optional(),
-  orderBy: Joi.string().pattern(/,(asc|desc)$/).optional(),
-})
+export const domainFilterValidator: ObjectSchema<DomainFilterQueryParams> =
+  Joi.object({
+    limit: Joi.number().optional(),
+    page: Joi.number().optional(),
+    orderBy: Joi.string()
+      .pattern(/,(asc|desc)$/)
+      .optional(),
+  });
 
 export const domainValidator: ObjectSchema<DomainType> = Joi.object({
-  domain: Joi.string().domain().when('validation', {
-    is: false,
-    then: Joi.string().domain().required(),
-    otherwise: Joi.string().domain().external(nslookupResolvesServerIp).required()
-  }),
+  domain: Joi.string()
+    .domain()
+    .when('validation', {
+      is: false,
+      then: Joi.string().domain().required(),
+      otherwise: Joi.string()
+        .domain()
+        .external(nslookupResolvesServerIp)
+        .required(),
+    }),
   ssl: Joi.string().when('validation', {
     is: false,
     then: Joi.valid('self-signed').allow(null).optional(),
-    otherwise: Joi.valid('self-signed', 'certbot').allow(null).optional()
+    otherwise: Joi.valid('self-signed', 'certbot').allow(null).optional(),
   }),
   validation: Joi.boolean().optional(),
 });

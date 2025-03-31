@@ -3,7 +3,6 @@ import path from 'path';
 import fsPromises from 'fs/promises';
 
 export default class FileManager {
-
   static isFile(dir: string, filename: string): boolean {
     return fs.existsSync(path.join(dir, filename));
   }
@@ -13,7 +12,7 @@ export default class FileManager {
   }
 
   static async isDirectory(directoryPath: string): Promise<boolean> {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       fs.stat(directoryPath, (err, stats) => {
         if (err) {
           return resolve(false);
@@ -36,7 +35,7 @@ export default class FileManager {
         return true;
       }
 
-      return true
+      return true;
     } catch (e) {
       console.error(e);
       return false;
@@ -44,11 +43,13 @@ export default class FileManager {
   }
 
   static async listDirectories(directory: string): Promise<string[]> {
-    const dirEntries = await fsPromises.readdir(directory, { withFileTypes: true });
+    const dirEntries = await fsPromises.readdir(directory, {
+      withFileTypes: true,
+    });
 
     const onlyDirs = dirEntries
-      .filter(d => d.isDirectory())
-      .map(d => d.name);
+      .filter((d) => d.isDirectory())
+      .map((d) => d.name);
 
     return onlyDirs;
   }
@@ -61,18 +62,31 @@ export default class FileManager {
     return fsPromises.readFile(filepath, encoding);
   }
 
-  static readFileInDir(dir: string, filename: string, encoding: BufferEncoding): Promise<string> {
+  static readFileInDir(
+    dir: string,
+    filename: string,
+    encoding: BufferEncoding,
+  ): Promise<string> {
     return fsPromises.readFile(path.join(dir, filename), encoding);
   }
 
-  static async saveToFile(file: string, data: string, encoding: BufferEncoding = "utf8", mode: Mode | undefined = undefined): Promise<void> {
+  static async saveToFile(
+    file: string,
+    data: string,
+    encoding: BufferEncoding = 'utf8',
+    mode: Mode | undefined = undefined,
+  ): Promise<void> {
     await fsPromises.writeFile(file, data, {
       encoding,
       mode,
     });
   }
 
-  static async appendToFile(file: string, data: string, encoding: BufferEncoding = "utf8"): Promise<void> {
+  static async appendToFile(
+    file: string,
+    data: string,
+    encoding: BufferEncoding = 'utf8',
+  ): Promise<void> {
     await fsPromises.appendFile(file, data, encoding);
   }
 
@@ -83,7 +97,7 @@ export default class FileManager {
   static async removeDir(dir: string): Promise<void> {
     try {
       if (this.isPath(dir)) {
-        await fsPromises.rm(dir, {recursive: true, force: true});
+        await fsPromises.rm(dir, { recursive: true, force: true });
       } else {
         console.error(`Directory ${dir} does not exists`);
       }

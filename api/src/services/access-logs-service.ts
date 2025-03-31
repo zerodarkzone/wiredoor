@@ -13,25 +13,39 @@ export class AccessLogsService {
     @Inject() private readonly tcpServiceRepository: TcpServiceRepository,
   ) {}
 
-  public async responseRealTimeLogs(logParams: LogQueryParams, res: Response): Promise<Response> {
+  public async responseRealTimeLogs(
+    logParams: LogQueryParams,
+    res: Response,
+  ): Promise<Response> {
     let tail: ChildProcessWithoutNullStreams;
 
     res.write(`data: ${JSON.stringify(['Getting logs...'])}\n\n`);
 
     if (logParams.type) {
       if (logParams.type === 'http') {
-        const service = await this.httpServiceRepository.findOne({ where: { id: +logParams.id }, relations: ['node'] });
+        const service = await this.httpServiceRepository.findOne({
+          where: { id: +logParams.id },
+          relations: ['node'],
+        });
 
         const logsDir = ServerUtils.getLogsDir(service.domain || '_');
 
         tail = spawn('tail', ['-n', '10', '-f', `${logsDir}/access.log`]);
       }
       if (logParams.type === 'tcp') {
-        const service = await this.tcpServiceRepository.findOne({ where: { id: +logParams.id }, relations: ['node'] });
+        const service = await this.tcpServiceRepository.findOne({
+          where: { id: +logParams.id },
+          relations: ['node'],
+        });
 
         const logsDir = ServerUtils.getLogsDir(service.domain || '_');
 
-        tail = spawn('tail', ['-n', '10', '-f', `${logsDir}/${service.identifier}_stream.log`]);
+        tail = spawn('tail', [
+          '-n',
+          '10',
+          '-f',
+          `${logsDir}/${service.identifier}_stream.log`,
+        ]);
       }
     } else {
       const logsDir = ServerUtils.getLogsDir(logParams.domain || '_');
@@ -43,7 +57,7 @@ export class AccessLogsService {
 
     tail.stdout.on('data', (data) => {
       buffer += data.toString();
-      const lines = buffer.split('\n')
+      const lines = buffer.split('\n');
       buffer = '';
 
       res.write(`data: ${JSON.stringify(lines)}\n\n`);

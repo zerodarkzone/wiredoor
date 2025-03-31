@@ -1,6 +1,6 @@
 import { Inject, Service } from 'typedi';
 import { celebrate, Joi } from 'celebrate';
-import { 
+import {
   Body,
   Delete,
   Get,
@@ -9,30 +9,37 @@ import {
   Patch,
   Post,
   QueryParams,
-  UseBefore
+  UseBefore,
 } from 'routing-controllers';
 import { AuthTokenHandler } from '../middlewares/auth-token-handler';
 import BaseController from './base-controller';
 import { DomainsService } from '../services/domains-service';
-import { DomainFilterQueryParams, domainFilterValidator, DomainType, domainValidator } from '../validators/domain-validator';
+import {
+  DomainFilterQueryParams,
+  domainFilterValidator,
+  DomainType,
+  domainValidator,
+} from '../validators/domain-validator';
+import { Domain } from '../database/models/domain';
+import { PagedData } from '../repositories/filters/repository-query-filter';
 
 @Service()
 @JsonController('/domains')
 @UseBefore(AuthTokenHandler)
 export default class DomainController extends BaseController {
-  constructor (
-    @Inject() private readonly domainsService: DomainsService,
-  ) {
+  constructor(@Inject() private readonly domainsService: DomainsService) {
     super();
   }
 
   @Get('/')
   @UseBefore(
     celebrate({
-      query: domainFilterValidator
-    })
+      query: domainFilterValidator,
+    }),
   )
-  async getDomains(@QueryParams() filters: DomainFilterQueryParams) {
+  async getDomains(
+    @QueryParams() filters: DomainFilterQueryParams,
+  ): Promise<Domain | Domain[] | PagedData<Domain>> {
     return this.domainsService.getDomains(filters);
   }
 
@@ -40,11 +47,9 @@ export default class DomainController extends BaseController {
   @UseBefore(
     celebrate({
       body: domainValidator,
-    })
+    }),
   )
-  async createNode(
-    @Body() params: DomainType
-  ) {
+  async createDomain(@Body() params: DomainType): Promise<Domain> {
     return this.domainsService.createDomain(params);
   }
 
@@ -52,9 +57,9 @@ export default class DomainController extends BaseController {
   @UseBefore(
     celebrate({
       params: Joi.object({ id: Joi.string().required() }),
-    })
+    }),
   )
-  async getNode(@Param('id') id: string) {
+  async getDomain(@Param('id') id: string): Promise<Domain> {
     return this.domainsService.getDomain(+id);
   }
 
@@ -63,9 +68,9 @@ export default class DomainController extends BaseController {
     celebrate({
       params: Joi.object({ id: Joi.string().required() }),
       body: domainValidator,
-    })
+    }),
   )
-  async updateNode(@Param('id') id: string, @Body() params) {
+  async updateDomain(@Param('id') id: string, @Body() params): Promise<Domain> {
     return this.domainsService.updateDomain(+id, params);
   }
 
@@ -73,9 +78,9 @@ export default class DomainController extends BaseController {
   @UseBefore(
     celebrate({
       params: Joi.object({ id: Joi.string().required() }),
-    })
+    }),
   )
-  async deleteNode(@Param('id') id: string) {
+  async deleteDomain(@Param('id') id: string): Promise<string> {
     return this.domainsService.deleteDomain(+id);
   }
 }

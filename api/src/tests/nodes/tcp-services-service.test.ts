@@ -12,7 +12,14 @@ import { WgInterfaceRepository } from '../../repositories/wg-interface-repositor
 import { makeNodeData } from './stubs/node.stub';
 import { Node } from '../../database/models/node';
 import { makeTcpServiceData } from './stubs/tcp-service.stub';
-import { mockCheckPort, mockCLIExec, mockIsPath, mockNslookup, mockRemoveDir, mockRemoveFile, mockSaveToFile } from '../.jest/global-mocks';
+import {
+  mockCheckPort,
+  mockCLIExec,
+  mockIsPath,
+  mockNslookup,
+  mockRemoveFile,
+  mockSaveToFile,
+} from '../.jest/global-mocks';
 import { PatService } from '../../services/pat-service';
 import { PersonalAccessTokenRepository } from '../../repositories/personal-access-token-repository';
 import { PatQueryFilter } from '../../repositories/filters/pat-query-filter';
@@ -61,22 +68,42 @@ describe('TCP Services Service', () => {
     patRepository = new PersonalAccessTokenRepository(dataSource);
     domainRepository = new DomainRepository(dataSource);
 
-    patService = new PatService(patRepository, new PatQueryFilter(patRepository));
-    domainService = new DomainsService(domainRepository, new DomainQueryFilter(domainRepository));
-    httpServicesService = new HttpServicesService(httpServiceRepository, new HttpServiceQueryFilter(httpServiceRepository), domainService);
-    service = new TcpServicesService(repository, filter, nodeRepository, domainService);
+    patService = new PatService(
+      patRepository,
+      new PatQueryFilter(patRepository),
+    );
+    domainService = new DomainsService(
+      domainRepository,
+      new DomainQueryFilter(domainRepository),
+    );
+    httpServicesService = new HttpServicesService(
+      httpServiceRepository,
+      new HttpServiceQueryFilter(httpServiceRepository),
+      domainService,
+    );
+    service = new TcpServicesService(
+      repository,
+      filter,
+      nodeRepository,
+      domainService,
+    );
 
     nodesService = new NodesService(
       nodeRepository,
       new NodeQueryFilter(nodeRepository),
-      new WireguardService(new WgInterfaceRepository(dataSource), nodeRepository),
+      new WireguardService(
+        new WgInterfaceRepository(dataSource),
+        nodeRepository,
+      ),
       httpServicesService,
       service,
       patService,
     );
 
     node = await nodesService.createNode(makeNodeData());
-    gateway = await nodesService.createNode(makeNodeData({ isGateway: true, gatewayNetwork: '172.8.0.0/24' }));
+    gateway = await nodesService.createNode(
+      makeNodeData({ isGateway: true, gatewayNetwork: '172.8.0.0/24' }),
+    );
 
     jest.clearAllMocks();
   });
@@ -89,34 +116,91 @@ describe('TCP Services Service', () => {
   });
 
   describe('Initialization', () => {
-    it('should update server configuration files for all TCP Services when initialize', async () => {      
+    it('should update server configuration files for all TCP Services when initialize', async () => {
       const serviceData1 = makeTcpServiceData();
       const serviceData2 = makeTcpServiceData();
       const serviceData3 = makeTcpServiceData();
-      const serviceData4 = makeTcpServiceData({ domain: serviceData1.domain, backendHost: 'service-name' });
-      const serviceData5 = makeTcpServiceData({ domain: serviceData1.domain, backendHost: '172.8.0.7' });
+      const serviceData4 = makeTcpServiceData({
+        domain: serviceData1.domain,
+        backendHost: 'service-name',
+      });
+      const serviceData5 = makeTcpServiceData({
+        domain: serviceData1.domain,
+        backendHost: '172.8.0.7',
+      });
 
-      await domainService.createDomain({ domain: serviceData1.domain as string, ssl: SSLTermination.SelfSigned });
-      await domainService.createDomain({ domain: serviceData3.domain as string, ssl: SSLTermination.SelfSigned });
+      await domainService.createDomain({
+        domain: serviceData1.domain as string,
+        ssl: SSLTermination.SelfSigned,
+      });
+      await domainService.createDomain({
+        domain: serviceData3.domain as string,
+        ssl: SSLTermination.SelfSigned,
+      });
 
       jest.clearAllMocks();
 
-      const tcpService1 = await repository.save({...serviceData1, port: 15000, nodeId: node.id});
-      const tcpService2 = await repository.save({...serviceData2, port: 15001, domain: '', proto: 'udp', nodeId: node.id});
-      const tcpService3 = await repository.save({...serviceData3, port: 15002, nodeId: node.id});
-      const tcpService4 = await repository.save({...serviceData4, port: 15003, nodeId: gateway.id});
-      const tcpService5 = await repository.save({...serviceData5, port: 15004, nodeId: gateway.id});
+      const tcpService1 = await repository.save({
+        ...serviceData1,
+        port: 15000,
+        nodeId: node.id,
+      });
+      const tcpService2 = await repository.save({
+        ...serviceData2,
+        port: 15001,
+        domain: '',
+        proto: 'udp',
+        nodeId: node.id,
+      });
+      const tcpService3 = await repository.save({
+        ...serviceData3,
+        port: 15002,
+        nodeId: node.id,
+      });
+      const tcpService4 = await repository.save({
+        ...serviceData4,
+        port: 15003,
+        nodeId: gateway.id,
+      });
+      const tcpService5 = await repository.save({
+        ...serviceData5,
+        port: 15004,
+        nodeId: gateway.id,
+      });
 
-      mockNslookup.mockImplementation(jest.fn(() => { return true }));
+      mockNslookup.mockImplementation(
+        jest.fn(() => {
+          return true;
+        }),
+      );
 
       await service.initialize();
 
       expect(mockSaveToFile.mock.calls).toEqual([
-        [`/etc/nginx/stream.d/n${node.id}s${tcpService1.id}_stream.conf`, expect.stringContaining(` ${tcpService1.domain};`)],
-        [`/etc/nginx/stream.d/n${node.id}s${tcpService2.id}_stream.conf`, expect.stringContaining(` 15001 udp;`)],
-        [`/etc/nginx/stream.d/n${node.id}s${tcpService3.id}_stream.conf`, expect.stringContaining(`server ${node.address}:${tcpService3.backendPort}`)],
-        [`/etc/nginx/stream.d/n${gateway.id}s${tcpService4.id}_stream.conf`, expect.stringContaining(`resolver ${gateway.address}`)],
-        [`/etc/nginx/stream.d/n${gateway.id}s${tcpService5.id}_stream.conf`, expect.stringContaining(`server ${tcpService5.backendHost}:${tcpService5.backendPort}`)],
+        [
+          `/etc/nginx/stream.d/n${node.id}s${tcpService1.id}_stream.conf`,
+          expect.stringContaining(` ${tcpService1.domain};`),
+        ],
+        [
+          `/etc/nginx/stream.d/n${node.id}s${tcpService2.id}_stream.conf`,
+          expect.stringContaining(` 15001 udp;`),
+        ],
+        [
+          `/etc/nginx/stream.d/n${node.id}s${tcpService3.id}_stream.conf`,
+          expect.stringContaining(
+            `server ${node.address}:${tcpService3.backendPort}`,
+          ),
+        ],
+        [
+          `/etc/nginx/stream.d/n${gateway.id}s${tcpService4.id}_stream.conf`,
+          expect.stringContaining(`resolver ${gateway.address}`),
+        ],
+        [
+          `/etc/nginx/stream.d/n${gateway.id}s${tcpService5.id}_stream.conf`,
+          expect.stringContaining(
+            `server ${tcpService5.backendHost}:${tcpService5.backendPort}`,
+          ),
+        ],
       ]);
     });
   });
@@ -124,7 +208,11 @@ describe('TCP Services Service', () => {
   describe('List TCP Services', () => {
     it('should list all TCP Services for certain node', async () => {
       const serviceData = makeTcpServiceData();
-      const tcpService = await repository.save({...serviceData, port: 15000, nodeId: node.id});
+      const tcpService = await repository.save({
+        ...serviceData,
+        port: 15000,
+        nodeId: node.id,
+      });
 
       const result = await service.getNodeTcpServices(node.id, {});
 
@@ -133,7 +221,11 @@ describe('TCP Services Service', () => {
     });
     it('should list TCP Services paginated for certain node', async () => {
       const serviceData = makeTcpServiceData();
-      const tcpService = await repository.save({...serviceData, port: 15001, nodeId: node.id});
+      const tcpService = await repository.save({
+        ...serviceData,
+        port: 15001,
+        nodeId: node.id,
+      });
 
       const result = await service.getNodeTcpServices(node.id, { limit: 1 });
 
@@ -145,53 +237,99 @@ describe('TCP Services Service', () => {
     it('should create TCP Service and save server configuration file', async () => {
       const serviceData = makeTcpServiceData({ ssl: true });
 
-      mockNslookup.mockImplementation(jest.fn(() => { return false }));
+      mockNslookup.mockImplementation(
+        jest.fn(() => {
+          return false;
+        }),
+      );
 
       const result = await service.createTcpService(node.id, serviceData);
 
-      expect(mockCheckPort).toHaveBeenCalled()
+      expect(mockCheckPort).toHaveBeenCalled();
 
       expect(result.id).toBeDefined();
       expect(result.domain).toEqual(serviceData.domain);
 
       expect(mockSaveToFile.mock.calls).toEqual([
-        [`/etc/nginx/conf.d/${serviceData.domain}.conf`, expect.stringContaining(` ${serviceData.domain};`)],
-        [`/etc/nginx/locations/${serviceData.domain}/__main.conf`, expect.stringContaining(`root /etc/nginx/default_pages;`)],
-        [`/etc/nginx/stream.d/n${node.id}s${result.id}_stream.conf`, expect.stringContaining(` /etc/nginx/ssl/${serviceData.domain}/privkey`)],
+        [
+          `/etc/nginx/conf.d/${serviceData.domain}.conf`,
+          expect.stringContaining(` ${serviceData.domain};`),
+        ],
+        [
+          `/etc/nginx/locations/${serviceData.domain}/__main.conf`,
+          expect.stringContaining(`root /etc/nginx/default_pages;`),
+        ],
+        [
+          `/etc/nginx/stream.d/n${node.id}s${result.id}_stream.conf`,
+          expect.stringContaining(
+            ` /etc/nginx/ssl/${serviceData.domain}/privkey`,
+          ),
+        ],
       ]);
 
       expect(mockCLIExec.mock.calls).toEqual([
-        [expect.stringMatching(new RegExp(`openssl.*${serviceData.domain?.replace('.', '\\.')}.*`))],
-        [expect.stringMatching(new RegExp(`openssl.*${serviceData.domain?.replace('.', '\\.')}.*`))],
-        [expect.stringMatching(new RegExp(`openssl.*${serviceData.domain?.replace('.', '\\.')}.*`))],
+        [
+          expect.stringMatching(
+            new RegExp(`openssl.*${serviceData.domain?.replace('.', '\\.')}.*`),
+          ),
+        ],
+        [
+          expect.stringMatching(
+            new RegExp(`openssl.*${serviceData.domain?.replace('.', '\\.')}.*`),
+          ),
+        ],
+        [
+          expect.stringMatching(
+            new RegExp(`openssl.*${serviceData.domain?.replace('.', '\\.')}.*`),
+          ),
+        ],
         ['nginx -t'],
         ['nginx -t'],
-        ['nginx -s reload']
+        ['nginx -s reload'],
       ]);
     });
     it('should create TCP Service and call certbot', async () => {
       const serviceData = makeTcpServiceData({ ssl: true });
 
-      mockNslookup.mockImplementation(jest.fn(() => { return true }));
+      mockNslookup.mockImplementation(
+        jest.fn(() => {
+          return true;
+        }),
+      );
 
       const result = await service.createTcpService(node.id, serviceData);
-      
-      expect(mockCheckPort).toHaveBeenCalled()
+
+      expect(mockCheckPort).toHaveBeenCalled();
 
       expect(result.id).toBeDefined();
       expect(result.domain).toEqual(serviceData.domain);
 
       expect(mockSaveToFile.mock.calls).toEqual([
-        [`/etc/nginx/conf.d/${serviceData.domain}.conf`, expect.stringContaining(` ${serviceData.domain};`)],
-        [`/etc/nginx/locations/${serviceData.domain}/__main.conf`, expect.stringContaining(`root /etc/nginx/default_pages;`)],
-        [`/etc/nginx/stream.d/n${node.id}s${result.id}_stream.conf`, expect.stringContaining(` /etc/letsencrypt/live/${serviceData.domain}/privkey`)],
+        [
+          `/etc/nginx/conf.d/${serviceData.domain}.conf`,
+          expect.stringContaining(` ${serviceData.domain};`),
+        ],
+        [
+          `/etc/nginx/locations/${serviceData.domain}/__main.conf`,
+          expect.stringContaining(`root /etc/nginx/default_pages;`),
+        ],
+        [
+          `/etc/nginx/stream.d/n${node.id}s${result.id}_stream.conf`,
+          expect.stringContaining(
+            ` /etc/letsencrypt/live/${serviceData.domain}/privkey`,
+          ),
+        ],
       ]);
 
       expect(mockCLIExec.mock.calls).toEqual([
-        [expect.stringMatching(new RegExp(`certbot.*${serviceData.domain?.replace('.', '\\.')}.*`))],
+        [
+          expect.stringMatching(
+            new RegExp(`certbot.*${serviceData.domain?.replace('.', '\\.')}.*`),
+          ),
+        ],
         ['nginx -t'],
         ['nginx -t'],
-        ['nginx -s reload']
+        ['nginx -s reload'],
       ]);
     });
   });
@@ -204,9 +342,16 @@ describe('TCP Services Service', () => {
 
       jest.clearAllMocks();
 
-      const update = makeTcpServiceData({ domain: serviceData.domain, proto: 'udp', backendPort: 8400 });
+      const update = makeTcpServiceData({
+        domain: serviceData.domain,
+        proto: 'udp',
+        backendPort: 8400,
+      });
 
-      const result = await service.updateTcpService(created.id, { ...update, port: undefined });
+      const result = await service.updateTcpService(created.id, {
+        ...update,
+        port: undefined,
+      });
 
       // expect(result.domain).toEqual(update.domain);
 
@@ -217,7 +362,7 @@ describe('TCP Services Service', () => {
 
       expect(mockCLIExec.mock.calls).toEqual([
         ['nginx -t'],
-        ['nginx -s reload']
+        ['nginx -s reload'],
       ]);
     });
   });
@@ -226,14 +371,18 @@ describe('TCP Services Service', () => {
     it('should delete TCP Service and server config file', async () => {
       const serviceData = makeTcpServiceData();
 
-      mockIsPath.mockImplementation(() => { return true });
+      mockIsPath.mockImplementation(() => {
+        return true;
+      });
       const created = await service.createTcpService(node.id, serviceData);
 
       jest.clearAllMocks();
 
       const result = await service.deleteTcpService(created.id);
 
-      expect(mockRemoveFile).toHaveBeenCalledWith(expect.stringContaining(`/n${node.id}s${created.id}_stream.conf`));
+      expect(mockRemoveFile).toHaveBeenCalledWith(
+        expect.stringContaining(`/n${node.id}s${created.id}_stream.conf`),
+      );
 
       // if (serviceData.ssl === 'certbot') {
       //   expect(mockCLIExec).toHaveBeenCalledWith(`certbot delete --cert-name ${serviceData.domain} -n`);

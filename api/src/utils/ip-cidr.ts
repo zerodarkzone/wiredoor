@@ -1,20 +1,27 @@
 import Joi from 'joi';
 
 export default class IP_CIDR {
-  static isValidIP(ip: string, version = ['ipv4', 'ipv6']) {
+  static isValidIP(ip: string, version = ['ipv4', 'ipv6']): boolean {
     const { error } = Joi.string().ip({ version }).validate(ip);
     return !error;
   }
 
-  static ipToLong(ip: string) {
-    return ip.split('.').reduce((acc, octet) => (acc << 8) + parseInt(octet), 0);
+  static ipToLong(ip: string): number {
+    return ip
+      .split('.')
+      .reduce((acc, octet) => (acc << 8) + parseInt(octet), 0);
   }
 
-  static longToIp(long: number) {
-    return [(long >>> 24), (long >>> 16 & 255), (long >>> 8 & 255), (long & 255)].join('.');
+  static longToIp(long: number): string {
+    return [
+      long >>> 24,
+      (long >>> 16) & 255,
+      (long >>> 8) & 255,
+      long & 255,
+    ].join('.');
   }
 
-  static cidrToRange(cidr: string) {
+  static cidrToRange(cidr: string): [number, number] {
     const [ip, subnet] = cidr.split('/');
     const ipLong = this.ipToLong(ip);
     const mask = ~(2 ** (32 - parseInt(subnet)) - 1);
@@ -24,13 +31,14 @@ export default class IP_CIDR {
     return [network, broadcast];
   }
 
-  static getInterfaceIp(cidr: string) {
+  static getInterfaceIp(cidr: string): string {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [networkLong, broadcastLong] = this.cidrToRange(cidr);
 
     return this.longToIp(networkLong + 1);
   }
 
-  static getAvailableIP(cidr: string, bussyIPList: string[]) {
+  static getAvailableIP(cidr: string, bussyIPList: string[]): string | null {
     const [networkLong, broadcastLong] = this.cidrToRange(cidr);
     const bussyLong = bussyIPList.map(this.ipToLong);
 

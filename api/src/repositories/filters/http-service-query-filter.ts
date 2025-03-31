@@ -2,6 +2,7 @@ import { Inject, Service } from 'typedi';
 import { RepositoryQueryFilter } from './repository-query-filter';
 import { HttpService } from '../../database/models/http-service';
 import { HttpServiceRepository } from '../http-service-repository';
+import { SelectQueryBuilder } from 'typeorm';
 
 @Service()
 export class HttpServiceQueryFilter extends RepositoryQueryFilter<HttpService> {
@@ -13,7 +14,7 @@ export class HttpServiceQueryFilter extends RepositoryQueryFilter<HttpService> {
     return ['node'];
   }
 
-  nodeId(param = null) {
+  nodeId(param = null): SelectQueryBuilder<HttpService> {
     if (param !== null) {
       return this.builder.where({
         nodeId: param,
@@ -21,11 +22,11 @@ export class HttpServiceQueryFilter extends RepositoryQueryFilter<HttpService> {
     }
   }
 
-  domain(param = null) {
+  domain(param = null): SelectQueryBuilder<HttpService> {
     if (param) {
       return this.builder.where({
-        domain: param
-      })
+        domain: param,
+      });
     }
   }
 }

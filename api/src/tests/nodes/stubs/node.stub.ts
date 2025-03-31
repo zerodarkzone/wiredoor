@@ -10,5 +10,5 @@ export const makeNodeData = (params?: any): CreateNodeType => {
     isGateway: params?.isGateway || false,
     gatewayNetwork: params?.gatewayNetwork || null,
     enabled: params?.enabled !== undefined ? params.enabled : true,
-  }
-}
+  };
+};

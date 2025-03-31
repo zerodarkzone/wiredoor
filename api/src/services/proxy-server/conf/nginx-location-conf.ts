@@ -31,18 +31,21 @@ export class NginxLocationConf extends NginxConf {
     return this;
   }
 
-  setNetworkAccess(allowedIps: string[], blockedIps: string[] = []): NginxLocationConf {
+  setNetworkAccess(
+    allowedIps: string[],
+    blockedIps: string[] = [],
+  ): NginxLocationConf {
     if (allowedIps && allowedIps.length) {
       allowedIps.forEach((ip) => {
         this.addBlock('allow', ip);
-      })
+      });
       this.addBlock('deny', 'all');
     }
 
     if (blockedIps && blockedIps.length) {
       blockedIps.forEach((ip) => {
         this.addBlock('deny', ip);
-      })
+      });
     }
 
     return this;
@@ -54,7 +57,7 @@ export class NginxLocationConf extends NginxConf {
     return this;
   }
 
-  public getLocationNginxConf(path: string = '/') {
+  public getLocationNginxConf(path: string = '/'): string {
     const nginxConf = new NginxConf();
 
     nginxConf.addLocation(path, this);

@@ -108,10 +108,7 @@
     "skipLibCheck": true                                 /* Skip type checking all .d.ts files. */
   },
   "exclude": [
-    "ui",
     "dist",
-    "rest",
-    "resources",
     "src/tests",
     "node_modules"
   ]

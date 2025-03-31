@@ -1,11 +1,9 @@
-import {
-  ExpressMiddlewareInterface,
-} from 'routing-controllers';
+import { ExpressMiddlewareInterface } from 'routing-controllers';
 import { Service } from 'typedi';
 import { NextFunction, Request, Response } from 'express';
 
 export interface ResponseSSE extends Response {
-  sendDataAsStream(data: any): void;
+  sendDataAsStream(data: unknown): void;
 }
 
 @Service()
@@ -15,8 +13,8 @@ export class SetupSSE implements ExpressMiddlewareInterface {
   async use(
     req: Request,
     res: ResponseSSE,
-    next: (err?: any) => NextFunction,
-  ) {
+    next: (err?: unknown) => NextFunction,
+  ): Promise<void> {
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Connection', 'keep-alive');
@@ -25,7 +23,7 @@ export class SetupSSE implements ExpressMiddlewareInterface {
       res.flushHeaders();
     }
 
-    res.sendDataAsStream = (data) => {
+    res.sendDataAsStream = (data): void => {
       try {
         if (!data) {
           return;
@@ -36,12 +34,12 @@ export class SetupSSE implements ExpressMiddlewareInterface {
         if (res.hasOwnProperty('flush')) {
           res.flush();
         }
-        
+
         res.write(payload);
       } catch (e) {
-        console.error("Error sending event stream", e);
+        console.error('Error sending event stream', e);
       }
-    }
+    };
 
     req.on('close', () => {
       res.end();

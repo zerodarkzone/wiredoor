@@ -9,9 +9,11 @@
         "Vue.volar",
         "dbaeumer.vscode-eslint",
         "EditorConfig.EditorConfig",
-        "esbenp.prettier-vscode"
+        "esbenp.prettier-vscode",
+        "orta.vscode-jest"
       ],
       "settings": {
+        "typescript.preferences.importModuleSpecifier": "relative",
         "editor.formatOnSave": true,
         "eslint.validate": ["typescript", "javascript", "vue"]
       }

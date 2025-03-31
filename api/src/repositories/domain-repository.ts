@@ -5,7 +5,7 @@ import BaseRepository from './base-repository';
 
 @Service()
 export class DomainRepository extends BaseRepository<Domain> {
-  constructor (@Inject('dataSource') dataSource: DataSource) {
+  constructor(@Inject('dataSource') dataSource: DataSource) {
     super(Domain, dataSource.createEntityManager());
   }
 

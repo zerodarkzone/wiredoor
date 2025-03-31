@@ -1,18 +1,26 @@
-import { Exclude, Expose } from 'class-transformer';
-import { Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { Expose } from 'class-transformer';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  Index,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { Node } from './node';
 import config from '../../config';
-import { Domain } from 'domain';
 
 @Entity('http_services')
-@Index("service_port_unique", ["backendPort", "nodeId"], { unique: true })
-@Index("domain_path_unique", ["domain", "pathLocation"], { unique: true })
+@Index('service_port_unique', ['backendPort', 'nodeId'], { unique: true })
+@Index('domain_path_unique', ['domain', 'pathLocation'], { unique: true })
 export class HttpService {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column({
-    length: 40
+    length: 40,
   })
   name: string;
 
@@ -24,7 +32,7 @@ export class HttpService {
 
   @Column({
     length: 40,
-    default: '/'
+    default: '/',
   })
   pathLocation: string;
 
@@ -34,12 +42,12 @@ export class HttpService {
   backendHost: string;
 
   @Column({
-    default: 80
+    default: 80,
   })
   backendPort: number;
 
   @Column({
-    default: 'http'
+    default: 'http',
   })
   backendProto: string;
 
@@ -47,7 +55,7 @@ export class HttpService {
   nodeId: number;
 
   @Column('boolean', {
-    default: true
+    default: true,
   })
   enabled: boolean;
 
@@ -63,10 +71,10 @@ export class HttpService {
   })
   blockedIps: string[];
 
-  @ManyToOne(type => Node)
-  @JoinColumn({ name: "nodeId" })
+  @ManyToOne(() => Node)
+  @JoinColumn({ name: 'nodeId' })
   node: Node;
-  
+
   @CreateDateColumn()
   //@CreateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP(6)" })
   created_at: Date;
@@ -77,12 +85,17 @@ export class HttpService {
 
   @Expose()
   get publicAccess(): string {
-    const link = new URL(this.pathLocation, this.domain ? `https://${this.domain}` : `https://${config.wireguard.host}`)
+    const link = new URL(
+      this.pathLocation,
+      this.domain
+        ? `https://${this.domain}`
+        : `https://${config.wireguard.host}`,
+    );
 
     return link.href;
   }
 
   get identifier(): string {
-    return `node${this.nodeId}service${this.id}`
+    return `node${this.nodeId}service${this.id}`;
   }
 }

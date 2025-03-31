@@ -23,13 +23,16 @@ export interface HttpServiceFilterQueryParams extends FilterQueryDto {
   domain?: string;
 }
 
-export const httpServiceFilterValidator: ObjectSchema<HttpServiceFilterQueryParams> = Joi.object({
-  limit: Joi.number().optional(),
-  page: Joi.number().optional(),
-  orderBy: Joi.string().pattern(/,(asc|desc)$/).optional(),
-  nodeId: Joi.number().optional(),
-  domain: Joi.string().domain().optional(),
-})
+export const httpServiceFilterValidator: ObjectSchema<HttpServiceFilterQueryParams> =
+  Joi.object({
+    limit: Joi.number().optional(),
+    page: Joi.number().optional(),
+    orderBy: Joi.string()
+      .pattern(/,(asc|desc)$/)
+      .optional(),
+    nodeId: Joi.number().optional(),
+    domain: Joi.string().domain().optional(),
+  });
 
 export const httpServiceValidator: ObjectSchema<HttpServiceType> = Joi.object({
   id: Joi.number().optional(),
@@ -43,6 +46,12 @@ export const httpServiceValidator: ObjectSchema<HttpServiceType> = Joi.object({
   backendProto: Joi.string().valid('http', 'https').allow(null).optional(),
   backendHost: Joi.string().allow(null).optional(),
   backendPort: Joi.number().port().optional(),
-  allowedIps: Joi.array().items(Joi.string().ip({cidr: 'optional'}).optional()).allow(null).optional(),
-  blockedIps: Joi.array().items(Joi.string().ip({cidr: 'optional'}).optional()).allow(null).optional()
+  allowedIps: Joi.array()
+    .items(Joi.string().ip({ cidr: 'optional' }).optional())
+    .allow(null)
+    .optional(),
+  blockedIps: Joi.array()
+    .items(Joi.string().ip({ cidr: 'optional' }).optional())
+    .allow(null)
+    .optional(),
 }).or('domain', 'pathLocation');

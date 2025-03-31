@@ -5,5 +5,5 @@ export const makeDomainData = (params?: any): DomainType => {
   return {
     domain: params?.domain || faker.internet.domainName(),
     ssl: params?.ssl || 'self-signed',
-  }
-}
+  };
+};

@@ -1,6 +1,5 @@
 import { SSLCerts } from '../../../database/models/domain';
 import { NginxConf } from './nginx-conf';
-import { NginxLocationConf } from './nginx-location-conf';
 
 export class NginxServerConf extends NginxConf {
   constructor(config = []) {
@@ -21,8 +20,14 @@ export class NginxServerConf extends NginxConf {
     return this;
   }
 
-  setAccessLog(accessLogFile: string, format: string = 'combined'): NginxServerConf {
-    this.addBlock('access_log', `${accessLogFile} ${format} buffer=64k flush=1s`);
+  setAccessLog(
+    accessLogFile: string,
+    format: string = 'combined',
+  ): NginxServerConf {
+    this.addBlock(
+      'access_log',
+      `${accessLogFile} ${format} buffer=64k flush=1s`,
+    );
 
     return this;
   }
@@ -70,7 +75,7 @@ export class NginxServerConf extends NginxConf {
     return this;
   }
 
-  public getNginxConf() {
+  public getNginxConf(): string {
     const nginxConf = new NginxConf();
 
     nginxConf.addServer(this);

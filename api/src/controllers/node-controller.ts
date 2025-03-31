@@ -1,7 +1,7 @@
 import { Inject, Service } from 'typedi';
 import { celebrate, Joi } from 'celebrate';
 import { Request, Response } from 'express';
-import { 
+import {
   Body,
   Delete,
   Get,
@@ -12,21 +12,38 @@ import {
   QueryParams,
   Req,
   Res,
-  UseBefore
+  UseBefore,
 } from 'routing-controllers';
-import { createNodeValidator, CreateNodeType, nodeFilterValidator, NodeFilterQueryParams, NodeFilterStreamParams } from '../validators/node-validators';
-import { CreatePATType, createPATValidator, PatFilterQueryParams, patFilterValidator } from '../validators/pat-validator';
+import {
+  createNodeValidator,
+  CreateNodeType,
+  nodeFilterValidator,
+  NodeFilterQueryParams,
+  NodeFilterStreamParams,
+} from '../validators/node-validators';
+import {
+  CreatePATType,
+  createPATValidator,
+  PatFilterQueryParams,
+  patFilterValidator,
+} from '../validators/pat-validator';
 import { NodesService } from '../services/nodes-service';
 import { PatService } from '../services/pat-service';
 import { AuthTokenHandler } from '../middlewares/auth-token-handler';
 import { ResponseSSE, SetupSSE } from '../middlewares/setup-sse';
 import BaseController from './base-controller';
+import { Node, NodeInfo } from '../database/models/node';
+import { PagedData } from '../repositories/filters/repository-query-filter';
+import {
+  PersonalAccessToken,
+  PersonalAccessTokenWithToken,
+} from '../database/models/personal-access-token';
 
 @Service()
 @JsonController('/nodes')
 @UseBefore(AuthTokenHandler)
 export default class NodeController extends BaseController {
-  constructor (
+  constructor(
     @Inject() private readonly nodesService: NodesService,
     @Inject() private readonly patService: PatService,
   ) {
@@ -36,39 +53,59 @@ export default class NodeController extends BaseController {
   @Get('/')
   @UseBefore(
     celebrate({
-      query: nodeFilterValidator
-    })
+      query: nodeFilterValidator,
+    }),
   )
-  async getNodes(@QueryParams() filters: NodeFilterQueryParams) {
-    const nodesFiltered = await this.nodesService.getNodes(filters);
+  async getNodes(
+    @QueryParams() filters: NodeFilterQueryParams,
+  ): Promise<PagedData<NodeInfo>> {
+    const nodesFiltered = (await this.nodesService.getNodes(
+      filters,
+    )) as unknown as PagedData<Node>;
 
     const nodes = await this.nodesService.getNodesRuntime(nodesFiltered.data);
 
     return {
       ...nodesFiltered,
       data: nodes,
-    }
+    };
   }
 
   @Get('/stream')
   @UseBefore(SetupSSE)
-  async getNodesAsStream(@QueryParams() filters: NodeFilterStreamParams, @Req() req: Request, @Res() res: ResponseSSE): Promise<ResponseSSE> {
+  async getNodesAsStream(
+    @QueryParams() filters: NodeFilterStreamParams,
+    @Req() req: Request,
+    @Res() res: ResponseSSE,
+  ): Promise<ResponseSSE> {
     if (filters.token) {
-      delete filters.token
+      delete filters.token;
     }
 
     if (filters.id) {
       const node = await this.nodesService.getNode(+filters.id);
 
-      return this.responseDataAtInterval(req, res, async () => {
-        return this.nodesService.getNodeRuntime(node);
-      }, 1000);
+      return this.responseDataAtInterval(
+        req,
+        res,
+        async () => {
+          return this.nodesService.getNodeRuntime(node);
+        },
+        1000,
+      );
     } else {
-      const nodes = await this.nodesService.getNodes(filters);
+      const nodes = (await this.nodesService.getNodes(
+        filters,
+      )) as PagedData<Node>;
 
-      return this.responseDataAtInterval(req, res, async () => {
-        return this.nodesService.getNodesRuntime(nodes.data);
-      }, 1000);
+      return this.responseDataAtInterval(
+        req,
+        res,
+        async () => {
+          return this.nodesService.getNodesRuntime(nodes.data);
+        },
+        1000,
+      );
     }
   }
 
@@ -76,11 +113,9 @@ export default class NodeController extends BaseController {
   @UseBefore(
     celebrate({
       body: createNodeValidator,
-    })
+    }),
   )
-  async createNode(
-    @Body() params: CreateNodeType
-  ) {
+  async createNode(@Body() params: CreateNodeType): Promise<Node> {
     return this.nodesService.createNode(params);
   }
 
@@ -88,9 +123,9 @@ export default class NodeController extends BaseController {
   @UseBefore(
     celebrate({
       params: Joi.object({ id: Joi.string().required() }),
-    })
+    }),
   )
-  async getNode(@Param('id') id: string) {
+  async getNode(@Param('id') id: string): Promise<NodeInfo> {
     return this.nodesService.getNodeInfo(+id);
   }
 
@@ -98,9 +133,9 @@ export default class NodeController extends BaseController {
   @UseBefore(
     celebrate({
       params: Joi.object({ id: Joi.string().required() }),
-    })
+    }),
   )
-  async getNodeClientConfig(@Param('id') id: string) {
+  async getNodeClientConfig(@Param('id') id: string): Promise<string> {
     return this.nodesService.getNodeConfig(+id);
   }
 
@@ -108,9 +143,12 @@ export default class NodeController extends BaseController {
   @UseBefore(
     celebrate({
       params: Joi.object({ id: Joi.string().required() }),
-    })
+    }),
   )
-  async downloadNodeClientConfig(@Param('id') id: string, @Res() res: Response): Promise<Response> {
+  async downloadNodeClientConfig(
+    @Param('id') id: string,
+    @Res() res: Response,
+  ): Promise<Response> {
     return this.nodesService.downloadNodeConfig(+id, res);
   }
 
@@ -119,29 +157,29 @@ export default class NodeController extends BaseController {
     celebrate({
       params: Joi.object({ id: Joi.string().required() }),
       body: createNodeValidator,
-    })
+    }),
   )
-  async updateNode(@Param('id') id: string, @Body() params) {
+  async updateNode(@Param('id') id: string, @Body() params): Promise<Node> {
     return this.nodesService.updateNode(+id, params);
   }
 
   @Patch('/:id/disable')
   @UseBefore(
     celebrate({
-      params: Joi.object({ id: Joi.string().required() })
-    })
+      params: Joi.object({ id: Joi.string().required() }),
+    }),
   )
-  async disableNode(@Param('id') id: string) {
+  async disableNode(@Param('id') id: string): Promise<Node> {
     return this.nodesService.disableNode(+id);
   }
 
   @Patch('/:id/enable')
   @UseBefore(
     celebrate({
-      params: Joi.object({ id: Joi.string().required() })
-    })
+      params: Joi.object({ id: Joi.string().required() }),
+    }),
   )
-  async enableNode(@Param('id') id: string) {
+  async enableNode(@Param('id') id: string): Promise<Node> {
     return this.nodesService.enableNode(+id);
   }
 
@@ -149,9 +187,9 @@ export default class NodeController extends BaseController {
   @UseBefore(
     celebrate({
       params: Joi.object({ id: Joi.string().required() }),
-    })
+    }),
   )
-  async deleteNode(@Param('id') id: string) {
+  async deleteNode(@Param('id') id: string): Promise<string> {
     return this.nodesService.deleteNode(+id);
   }
 
@@ -160,9 +198,14 @@ export default class NodeController extends BaseController {
     celebrate({
       params: Joi.object({ id: Joi.string().required() }),
       query: patFilterValidator,
-    })
+    }),
   )
-  async getPats(@Param('id') id: string, @QueryParams() params: PatFilterQueryParams) {
+  async getPats(
+    @Param('id') id: string,
+    @QueryParams() params: PatFilterQueryParams,
+  ): Promise<
+    PersonalAccessToken | PersonalAccessToken[] | PagedData<PersonalAccessToken>
+  > {
     return this.patService.getPATs(+id, params);
   }
 
@@ -171,9 +214,12 @@ export default class NodeController extends BaseController {
     celebrate({
       params: Joi.object({ id: Joi.string().required() }),
       body: createPATValidator,
-    })
+    }),
   )
-  async createTokenForNode(@Param('id') id: string, @Body() params: CreatePATType) {
+  async createTokenForNode(
+    @Param('id') id: string,
+    @Body() params: CreatePATType,
+  ): Promise<PersonalAccessTokenWithToken> {
     // ensure that node exists
     const node = await this.nodesService.getNode(+id);
     return this.patService.createNodePAT(node.id, params);
@@ -182,26 +228,32 @@ export default class NodeController extends BaseController {
   @Delete('/:id/pats/:patId')
   @UseBefore(
     celebrate({
-      params: Joi.object({ 
+      params: Joi.object({
         id: Joi.string().required(),
         patId: Joi.string().required(),
-      })
-    })
+      }),
+    }),
   )
-  async deletePat(@Param('id') id: string, @Param('patId') patId: string) {
+  async deletePat(
+    @Param('id') id: string,
+    @Param('patId') patId: string,
+  ): Promise<string> {
     return this.patService.deletePat(+patId);
   }
 
   @Patch('/:id/pats/:patId/revoke')
   @UseBefore(
     celebrate({
-      params: Joi.object({ 
+      params: Joi.object({
         id: Joi.string().required(),
         patId: Joi.string().required(),
-      })
-    })
+      }),
+    }),
   )
-  async revokePat(@Param('id') id: string, @Param('patId') patId: string) {
+  async revokePat(
+    @Param('id') id: string,
+    @Param('patId') patId: string,
+  ): Promise<PersonalAccessToken> {
     return this.patService.revokeToken(+patId);
   }
 }

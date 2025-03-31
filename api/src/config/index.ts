@@ -54,10 +54,10 @@ export default {
   },
   admin: {
     email: process.env.ADMIN_EMAIL || 'admin@example.com',
-    password: bcrypt.hashSync(process.env.ADMIN_PASSWORD || 'ChangeMe1st!', 10)
+    password: bcrypt.hashSync(process.env.ADMIN_PASSWORD || 'ChangeMe1st!', 10),
   },
   db: {
-    type: process.env.DB_CONNECTION || 'sqlite' as 'mysql' | 'sqlite',
+    type: process.env.DB_CONNECTION || ('sqlite' as 'mysql' | 'sqlite'),
     host: process.env.DB_HOST,
     port: +process.env.DB_PORT,
     username: process.env.DB_USERNAME,
@@ -65,22 +65,30 @@ export default {
     database: process.env.DB_DATABASE || '/data/db.sqlite',
   },
   jwt: {
-    secret: getJWTKey()
+    secret: getJWTKey(),
   },
   server: {
-    port_range: process.env.TCP_SERVICES_PORT_RANGE
+    port_range: process.env.TCP_SERVICES_PORT_RANGE,
   },
   nginx: {
-    logs: process.env.SERVER_LOGS_DIR || '/var/log/nginx'
+    logs: process.env.SERVER_LOGS_DIR || '/var/log/nginx',
   },
   wireguard: {
     path: process.env.WG_PATH || '/etc/wireguard',
-    host: process.env.VPN_HOST,
+    host: process.env.VPN_HOST || 'localhost',
     port: VPN_PORT,
     subnet: subnet,
-    preUp: (process.env.WG_PRE_UP_SCRIPT || defaultPreUpScript).split('\n').join(' '),
-    postUp: (process.env.WG_POST_UP_SCRIPT || defaultPostUpScript).split('\n').join(' '),
-    preDown: (process.env.WG_PRE_UP_SCRIPT || defaultPreDownScript).split('\n').join(' '),
-    postDown: (process.env.WG_POST_UP_SCRIPT || defaultPostDownScript).split('\n').join(' '),
-  }
-}
+    preUp: (process.env.WG_PRE_UP_SCRIPT || defaultPreUpScript)
+      .split('\n')
+      .join(' '),
+    postUp: (process.env.WG_POST_UP_SCRIPT || defaultPostUpScript)
+      .split('\n')
+      .join(' '),
+    preDown: (process.env.WG_PRE_UP_SCRIPT || defaultPreDownScript)
+      .split('\n')
+      .join(' '),
+    postDown: (process.env.WG_POST_UP_SCRIPT || defaultPostDownScript)
+      .split('\n')
+      .join(' '),
+  },
+};

@@ -6,25 +6,28 @@ import { ValidationError } from '../utils/errors/validation-error';
 
 @Service()
 export class TcpServiceRepository extends Repository<TcpService> {
-  constructor (@Inject('dataSource') dataSource: DataSource) {
+  constructor(@Inject('dataSource') dataSource: DataSource) {
     super(TcpService, dataSource.createEntityManager());
   }
 
-  
-  async getAvailablePort() {
+  async getAvailablePort(): Promise<number> {
     if (!config.server.port_range) {
       throw new ValidationError({
         body: [
           {
             field: 'port',
-            message: 'Your servers needs TCP_SERVICES_PORT_RANGE env variable defined.'
-          }
-        ]
+            message:
+              'Your servers needs TCP_SERVICES_PORT_RANGE env variable defined.',
+          },
+        ],
       });
     }
 
     const min = +config.server.port_range.split('-')[0];
-    const max = +config.server.port_range.split('-').length == 2 ? +config.server.port_range.split('-')[1] : min;
+    const max =
+      +config.server.port_range.split('-').length == 2
+        ? +config.server.port_range.split('-')[1]
+        : min;
 
     const servicePorts = await this.createQueryBuilder('tcpService')
       .select('tcpService.port')
@@ -39,13 +42,13 @@ export class TcpServiceRepository extends Repository<TcpService> {
         body: [
           {
             field: 'port',
-            message: `No ports avaliable in range from ${min} to ${max} to expose your service.`
-          }
-        ]
+            message: `No ports avaliable in range from ${min} to ${max} to expose your service.`,
+          },
+        ],
       });
     }
-    
-    let port = null;
+
+    let port: number = null;
 
     for (let i = min; i <= max; i++) {
       if (!usedPorts.has(i)) {

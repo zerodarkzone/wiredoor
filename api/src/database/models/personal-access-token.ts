@@ -1,5 +1,13 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
-import { Node } from "./node";
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+import { Node } from './node';
 
 export interface PersonalAccessTokenWithToken extends PersonalAccessToken {
   token: string;
@@ -11,12 +19,12 @@ export class PersonalAccessToken {
   id: number;
 
   @Column({
-    length: 40
+    length: 40,
   })
   name: string;
 
   @Column({
-    nullable: true
+    nullable: true,
   })
   expireAt: Date;
 
@@ -33,8 +41,8 @@ export class PersonalAccessToken {
   @Column()
   nodeId: number;
 
-  @ManyToOne(type => Node)
-  @JoinColumn({ name: "nodeId" })
+  @ManyToOne(() => Node)
+  @JoinColumn({ name: 'nodeId' })
   node: Node;
 
   @CreateDateColumn()

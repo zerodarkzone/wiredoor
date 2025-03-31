@@ -2,18 +2,24 @@ import { Inject, Service } from 'typedi';
 import { Response } from 'express';
 import { NodeRepository } from '../repositories/node-repository';
 import { Node, NodeInfo } from '../database/models/node';
-import { CreateNodeType, NodeFilterQueryParams } from '../validators/node-validators';
-import WireguardService from './wireguard/wireguard-service';
+import {
+  CreateNodeType,
+  NodeFilterQueryParams,
+} from '../validators/node-validators';
+import WireguardService, {
+  WGConfigObject,
+} from './wireguard/wireguard-service';
 import { HttpServicesService } from './http-services-service';
 import { TcpServicesService } from './tcp-services-service';
 import { PatService } from './pat-service';
 import { NotFoundError } from 'routing-controllers';
 import { NodeQueryFilter } from '../repositories/filters/node-query-filter';
 import Net from '../utils/net';
+import { PagedData } from '../repositories/filters/repository-query-filter';
 
 @Service()
 export class NodesService {
-  constructor (
+  constructor(
     @Inject() private readonly nodeRepository: NodeRepository,
     @Inject() private readonly nodeFilter: NodeQueryFilter,
     @Inject() private readonly wireguardService: WireguardService,
@@ -22,9 +28,9 @@ export class NodesService {
     @Inject() private readonly patService: PatService,
   ) {}
 
-  public async initialize() {
+  public async initialize(): Promise<void> {
     const gateways = await this.nodeRepository.find({
-      where: { isGateway: true }
+      where: { isGateway: true },
     });
 
     for (const gw of gateways) {
@@ -38,11 +44,13 @@ export class NodesService {
     return this.nodeRepository.find();
   }
 
-  public async getNodes(filters: NodeFilterQueryParams): Promise<{data: Node[]; page: number; limit: number; total: number}> {
+  public async getNodes(
+    filters: NodeFilterQueryParams,
+  ): Promise<Node | Node[] | PagedData<Node>> {
     return this.nodeFilter.apply(filters);
   }
 
-  public async getNodesRuntime(nodes?: Node[]) {
+  public async getNodesRuntime(nodes?: Node[]): Promise<NodeInfo[]> {
     if (!nodes) {
       nodes = await this.getAll();
     }
@@ -64,9 +72,11 @@ export class NodesService {
   public async createNodeWithPAT(params: CreateNodeType): Promise<Node> {
     const node = await this.createNode(params);
 
-    const pat = await this.patService.createNodePAT(+node.id, { name: 'default' })
+    const pat = await this.patService.createNodePAT(+node.id, {
+      name: 'default',
+    });
 
-    console.log(pat)
+    console.log(pat);
 
     return {
       ...node,
@@ -100,7 +110,7 @@ export class NodesService {
     return this.wireguardService.getClientConfig(node);
   }
 
-  public async getNodeWGConfig(id: number): Promise<any> {
+  public async getNodeWGConfig(id: number): Promise<WGConfigObject> {
     const node = await this.getNode(id);
 
     const wgConfig = await this.wireguardService.getClientWGConfig(node);
@@ -108,17 +118,26 @@ export class NodesService {
     return wgConfig;
   }
 
-  public async downloadNodeConfig(id: number, res: Response): Promise<Response> {
+  public async downloadNodeConfig(
+    id: number,
+    res: Response,
+  ): Promise<Response> {
     const node = await this.getNode(id);
     const config = await this.wireguardService.getClientConfig(node);
 
-    res.set('Content-Disposition', `attachment; filename="wiredoor-${node.name}-config.conf"`);
-    res.write(config)
+    res.set(
+      'Content-Disposition',
+      `attachment; filename="wiredoor-${node.name}-config.conf"`,
+    );
+    res.write(config);
 
     return res.send();
   }
 
-  public async updateNode(id: number, params: Partial<CreateNodeType>): Promise<Node> {
+  public async updateNode(
+    id: number,
+    params: Partial<CreateNodeType>,
+  ): Promise<Node> {
     const old = await this.getNode(id);
 
     if (old.isGateway) {
@@ -127,13 +146,13 @@ export class NodesService {
 
     await this.nodeRepository.save({
       id,
-      ...params
+      ...params,
     });
 
     const updatedNode = await this.getNode(id);
 
     if (updatedNode.isGateway) {
-      await this.configureGateway(updatedNode)
+      await this.configureGateway(updatedNode);
     }
 
     await this.wireguardService.loadConfig();
@@ -153,9 +172,9 @@ export class NodesService {
     const old = await this.getNode(id);
 
     if (old.isGateway) {
-      await this.disableGateway(old)
+      await this.disableGateway(old);
     }
-    
+
     await this.nodeRepository.delete(id);
 
     await this.wireguardService.loadConfig();
@@ -166,24 +185,15 @@ export class NodesService {
     return 'Instance deleted';
   }
 
-  private async disableGateway(node: Node) {
+  private async disableGateway(node: Node): Promise<void> {
     if (node.isGateway) {
       await Net.delRoute(node.gatewayNetwork, node.address);
     }
   }
 
-  private async configureGateway(node: Node) {
+  private async configureGateway(node: Node): Promise<void> {
     if (node.isGateway) {
       await Net.addRoute(node.gatewayNetwork, node.address);
     }
-    
-  }
-
-  public async sendConnectMessage(id: number) {
-    // TODO: enviar un mensaje por MQTT al cliente para que se conecte a la VPN
-  }
-
-  public async sendDisconnectMessage(id: number) {
-    // TODO: enviar un mensaje por MQTT al cliente para que se desconecte de la VPN
   }
 }

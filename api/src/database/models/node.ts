@@ -1,15 +1,23 @@
-import { Exclude, Expose } from 'class-transformer';
-import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { Exclude } from 'class-transformer';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { HttpService } from './http-service';
 import { PersonalAccessToken } from './personal-access-token';
 import { TcpService } from './tcp-service';
 
-export interface NodeInfo extends Omit<Node, 'publicKey' | 'privateKey' | 'preSharedKey'> {
+export interface NodeInfo
+  extends Omit<Node, 'publicKey' | 'privateKey' | 'preSharedKey'> {
   clientIp?: string;
   latestHandshakeTimestamp?: number;
   transferRx?: number;
   transferTx?: number;
-  status?: 'online' | 'offline' | 'idle'
+  status?: 'online' | 'offline' | 'idle';
 }
 
 @Entity('nodes')
@@ -18,22 +26,22 @@ export class Node {
   id: number;
 
   @Column({
-    length: 40
+    length: 40,
   })
   name: string;
 
   @Column({
-    unique: true
+    unique: true,
   })
   address: string;
 
   @Column({
-    nullable: true
+    nullable: true,
   })
   gatewayNetwork: string;
 
   @Column({
-    default: 'wg0'
+    default: 'wg0',
   })
   wgInterface: string;
 
@@ -50,32 +58,32 @@ export class Node {
   privateKey: string;
 
   @Column({
-    default: false
+    default: false,
   })
   allowInternet: boolean;
 
   @Column('boolean', {
-    default: true
+    default: true,
   })
   enabled: boolean;
 
   @Column('boolean', {
-    default: false
+    default: false,
   })
   isGateway: boolean;
 
   @OneToMany(() => HttpService, (service) => service.node, {
-    onDelete: 'CASCADE'
+    onDelete: 'CASCADE',
   })
   httpServices: HttpService[];
 
   @OneToMany(() => TcpService, (service) => service.node, {
-    onDelete: 'CASCADE'
+    onDelete: 'CASCADE',
   })
   tcpServices: TcpService[];
 
   @OneToMany(() => PersonalAccessToken, (service) => service.node, {
-    onDelete: 'CASCADE'
+    onDelete: 'CASCADE',
   })
   personalAccessTokens: PersonalAccessToken[];
 

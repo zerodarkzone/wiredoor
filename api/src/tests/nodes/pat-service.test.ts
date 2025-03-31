@@ -56,7 +56,7 @@ describe('Personal Access Token Service', () => {
   describe('List Personal Access Token for given Node', () => {
     it('should list all PAT for certain node', async () => {
       const patData = makePATData();
-      const pat = await repository.save({...patData, nodeId: node.id});
+      const pat = await repository.save({ ...patData, nodeId: node.id });
 
       const result = await service.getPATs(node.id, {});
 
@@ -68,7 +68,7 @@ describe('Personal Access Token Service', () => {
   describe('Get PAT', () => {
     it('should retrieve PAT by ID', async () => {
       const patData = makePATData();
-      const pat = await repository.save({...patData, nodeId: node.id});
+      const pat = await repository.save({ ...patData, nodeId: node.id });
 
       const result = await service.getPatById(pat.id);
 
@@ -77,7 +77,7 @@ describe('Personal Access Token Service', () => {
     });
     it('should retrieve PAT and load node relationship', async () => {
       const patData = makePATData();
-      const pat = await repository.save({...patData, nodeId: node.id});
+      const pat = await repository.save({ ...patData, nodeId: node.id });
 
       const result = await service.getPatById(pat.id, ['node']);
 
@@ -96,7 +96,9 @@ describe('Personal Access Token Service', () => {
       expect(result.id).toBeDefined();
       expect(result.token).toEqual(expect.any(String));
 
-      const buff = Buffer.from(result.token.split('.')[1], 'base64').toString('utf-8');
+      const buff = Buffer.from(result.token.split('.')[1], 'base64').toString(
+        'utf-8',
+      );
       const claims = JSON.parse(buff);
 
       expect(claims.id).toEqual(result.id);
@@ -109,7 +111,7 @@ describe('Personal Access Token Service', () => {
   describe('Revoke PAT for node', () => {
     it('should revoke pat', async () => {
       const patData = makePATData();
-      const pat = await repository.save({...patData, nodeId: node.id});
+      const pat = await repository.save({ ...patData, nodeId: node.id });
 
       const result = await service.revokeToken(pat.id);
 
@@ -122,7 +124,7 @@ describe('Personal Access Token Service', () => {
   describe('Remove PAT for node', () => {
     it('should delete PAT with given id', async () => {
       const patData = makePATData();
-      const pat = await repository.save({...patData, nodeId: node.id});
+      const pat = await repository.save({ ...patData, nodeId: node.id });
 
       const result = await service.deletePat(pat.id);
 

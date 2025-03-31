@@ -15,7 +15,7 @@ export interface RuntimeInfo {
 export default class WGCli {
   /**
    * Generates a random private key in base64.
-   * 
+   *
    * @returns {Promise<string>} random private key in base64
    */
   static async genPrivateKey(): Promise<string> {
@@ -26,7 +26,7 @@ export default class WGCli {
 
   /**
    * Calculates a public key from a corresponding privateKey (generated with genkey).
-   * 
+   *
    * @param {string} privateKey
    * @returns {Promise<string>} public key from a corresponding privateKey
    */
@@ -38,7 +38,7 @@ export default class WGCli {
 
   /**
    * Generates a random preshared key in base64
-   * 
+   *
    * @returns {Promise<string>} random preshared key in base64
    */
   static async genPreSharedKey(): Promise<string> {
@@ -48,10 +48,10 @@ export default class WGCli {
   }
 
   /**
-   * Reads back the existing configuration first and only makes changes that are explicitly 
-   * different between the configuration file and the interface. This is much less efficient 
+   * Reads back the existing configuration first and only makes changes that are explicitly
+   * different between the configuration file and the interface. This is much less efficient
    * than setconf, but has the benefit of not disrupting current peer sessions.
-   * 
+   *
    * @param {string} cfg - Config name
    */
   static async syncConf(cfg = 'wg0'): Promise<void> {
@@ -60,7 +60,7 @@ export default class WGCli {
 
   static async quickUp(cfg = 'wg0'): Promise<void> {
     try {
-      const { stdout, stderr } = await CLI.exec(`wg-quick up ${cfg}`);
+      await CLI.exec(`wg-quick up ${cfg}`);
     } catch (e) {
       throw e;
     }
@@ -68,13 +68,16 @@ export default class WGCli {
 
   static async quickDown(cfg = 'wg0'): Promise<void> {
     try {
-      const { stdout, stderr } = await CLI.exec(`wg-quick down ${cfg}`);
-    } catch (e) {}
+      await CLI.exec(`wg-quick down ${cfg}`);
+    } catch {}
   }
 
-  static async dumpPeerRuntimeInfo(peer: string, cfg = 'wg0'): Promise<RuntimeInfo | null> {
+  static async dumpPeerRuntimeInfo(
+    peer: string,
+    cfg = 'wg0',
+  ): Promise<RuntimeInfo | null> {
     try {
-      const { stdout, stderr } = await CLI.exec(`wg show ${cfg} dump | grep ${peer}`);
+      const { stdout } = await CLI.exec(`wg show ${cfg} dump | grep ${peer}`);
 
       if (!stdout) {
         return null;
@@ -82,7 +85,7 @@ export default class WGCli {
 
       const result = this.parseDumpLine(stdout);
 
-      return result ? result : null
+      return result ? result : null;
     } catch (e) {
       throw e;
     }
@@ -90,13 +93,13 @@ export default class WGCli {
 
   static async dumpRunTimeInfo(cfg = 'wg0'): Promise<RuntimeInfo[]> {
     try {
-      const { stdout, stderr } = await CLI.exec(`wg show ${cfg} dump`);
+      const { stdout } = await CLI.exec(`wg show ${cfg} dump`);
 
       if (!stdout) {
         return [];
       }
 
-      return this.parseRuntimeDump(stdout)
+      return this.parseRuntimeDump(stdout);
     } catch (e) {
       throw e;
     }
@@ -107,14 +110,25 @@ export default class WGCli {
       .trim()
       .split('\n')
       .slice(1)
-      .map((line) => this.parseDumpLine(line))
+      .map((line) => this.parseDumpLine(line));
   }
 
   static parseDumpLine(line: string): RuntimeInfo {
-    const [publicKey, preSharedKey, endpoint, allowedIps, latestHandshake, transferRx, transferTx, persistentKeepalive] = line.trim().split('\t');
+    const [
+      publicKey,
+      preSharedKey,
+      endpoint,
+      allowedIps,
+      latestHandshake,
+      transferRx,
+      transferTx,
+      persistentKeepalive,
+    ] = line.trim().split('\t');
 
     const clientEndpoint = endpoint === '(none)' ? null : endpoint;
-    const clientUrl = clientEndpoint ? new URL(`http://${clientEndpoint}`) : null;
+    const clientUrl = clientEndpoint
+      ? new URL(`http://${clientEndpoint}`)
+      : null;
 
     return {
       publicKey,
@@ -125,7 +139,8 @@ export default class WGCli {
       latestHandshake: parseInt(latestHandshake),
       transferRx: parseInt(transferRx),
       transferTx: parseInt(transferTx),
-      persistentKeepalive: persistentKeepalive === 'off' ? 0 : parseInt(persistentKeepalive)
-    }
+      persistentKeepalive:
+        persistentKeepalive === 'off' ? 0 : parseInt(persistentKeepalive),
+    };
   }
 }

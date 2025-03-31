@@ -1,16 +1,25 @@
-import { Exclude, Expose } from 'class-transformer';
-import { Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { Expose } from 'class-transformer';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  Index,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { Node } from './node';
 import config from '../../config';
 
 @Entity('tcp_services')
-@Index("unique_port_per_node", ["backendPort", "nodeId"], { unique: true })
+@Index('unique_port_per_node', ['backendPort', 'nodeId'], { unique: true })
 export class TcpService {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column({
-    length: 40
+    length: 40,
   })
   name: string;
 
@@ -21,7 +30,7 @@ export class TcpService {
   domain: string;
 
   @Column({
-    default: 'tcp'
+    default: 'tcp',
   })
   proto: string;
 
@@ -39,7 +48,7 @@ export class TcpService {
   port: number;
 
   @Column('boolean', {
-    default: false
+    default: false,
   })
   ssl: boolean;
 
@@ -47,7 +56,7 @@ export class TcpService {
   nodeId: number;
 
   @Column('boolean', {
-    default: true
+    default: true,
   })
   enabled: boolean;
 
@@ -63,10 +72,10 @@ export class TcpService {
   })
   blockedIps: string[];
 
-  @ManyToOne(type => Node)
-  @JoinColumn({ name: "nodeId" })
+  @ManyToOne(() => Node)
+  @JoinColumn({ name: 'nodeId' })
   node: Node;
-  
+
   @CreateDateColumn()
   //@CreateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP(6)" })
   created_at: Date;

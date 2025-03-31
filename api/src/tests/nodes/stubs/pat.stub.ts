@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker';
-import { CreatePATType } from 'src/validators/pat-validator';
+import { CreatePATType } from '../../../validators/pat-validator';
 
 export const makePATData = (params?: any): CreatePATType => {
   return {
@@ -7,4 +7,4 @@ export const makePATData = (params?: any): CreatePATType => {
     exapireAt: params?.expireAt || null,
     revoked: params?.revoked || false,
   };
-}
+};

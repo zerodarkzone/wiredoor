@@ -159,7 +159,7 @@ const dataMonitor = (filters?: { [key: string]: string | number | undefined }) =
     }
 
     eventSource.onerror = (error) => {
-      console.error('Error en SSE:', error)
+      console.error('SSE Error:', error)
     }
   }
 }

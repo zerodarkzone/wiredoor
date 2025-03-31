@@ -4,20 +4,24 @@ import { HttpService } from '../database/models/http-service';
 import axios, { AxiosRequestConfig } from 'axios';
 import https from 'https';
 import { BadRequestError } from 'routing-controllers';
-import { HttpServiceFilterQueryParams, HttpServiceType } from '../validators/http-service-validator';
+import {
+  HttpServiceFilterQueryParams,
+  HttpServiceType,
+} from '../validators/http-service-validator';
 import { HttpServiceQueryFilter } from '../repositories/filters/http-service-query-filter';
 import { NginxManager } from './proxy-server/nginx-manager';
 import { DomainsService } from './domains-service';
+import { PagedData } from '../repositories/filters/repository-query-filter';
 
 @Service()
 export class HttpServicesService {
-  constructor (
+  constructor(
     @Inject() private readonly httpServiceRepository: HttpServiceRepository,
     @Inject() private readonly httpServiceFilter: HttpServiceQueryFilter,
     @Inject() private readonly domainService: DomainsService,
   ) {}
 
-  public async initialize() {
+  public async initialize(): Promise<void> {
     const services = await this.httpServiceRepository.find({
       relations: ['node'],
     });
@@ -27,23 +31,34 @@ export class HttpServicesService {
     }
   }
 
-  public async getHttpServices(params: HttpServiceFilterQueryParams): Promise<any> {
+  public async getHttpServices(
+    params: HttpServiceFilterQueryParams,
+  ): Promise<HttpService | HttpService[] | PagedData<HttpService>> {
     return this.httpServiceFilter.apply(params);
   }
 
-  public async getNodeHttpServices(nodeId: number, params: HttpServiceFilterQueryParams): Promise<any> {
+  public async getNodeHttpServices(
+    nodeId: number,
+    params: HttpServiceFilterQueryParams,
+  ): Promise<HttpService | HttpService[] | PagedData<HttpService>> {
     return this.httpServiceFilter.apply({ ...params, nodeId });
   }
 
-  public async getHttpService(id: number, relations: string[] = []): Promise<HttpService> {
+  public async getHttpService(
+    id: number,
+    relations: string[] = [],
+  ): Promise<HttpService> {
     return this.httpServiceRepository.findOne({
       where: { id },
       relations,
     });
   }
 
-  public async createHttpService(nodeId: number, params: HttpServiceType): Promise<HttpService> {
-    const { id } = await this.httpServiceRepository.save({...params, nodeId});
+  public async createHttpService(
+    nodeId: number,
+    params: HttpServiceType,
+  ): Promise<HttpService> {
+    const { id } = await this.httpServiceRepository.save({ ...params, nodeId });
 
     const httpService = await this.getHttpService(id, ['node']);
 
@@ -52,14 +67,17 @@ export class HttpServicesService {
     return httpService;
   }
 
-  public async updateHttpService(id: number, params: Partial<HttpServiceType>): Promise<HttpService> {
+  public async updateHttpService(
+    id: number,
+    params: Partial<HttpServiceType>,
+  ): Promise<HttpService> {
     const old = await this.getHttpService(id);
 
     await NginxManager.removeHttpService(old, false);
 
     await this.httpServiceRepository.save({
       id,
-      ...params
+      ...params,
     });
 
     const httpService = await this.getHttpService(id, ['node']);
@@ -69,12 +87,12 @@ export class HttpServicesService {
     return httpService;
   }
 
-  enableService(id: number) {
-    return this.updateHttpService(id, { enabled: true })
+  enableService(id: number): Promise<HttpService> {
+    return this.updateHttpService(id, { enabled: true });
   }
 
-  disableService(id: number) {
-    return this.updateHttpService(id, { enabled: false })
+  disableService(id: number): Promise<HttpService> {
+    return this.updateHttpService(id, { enabled: false });
   }
 
   public async deleteHttpService(id: number): Promise<string> {
@@ -87,30 +105,36 @@ export class HttpServicesService {
     return 'Deleted!';
   }
 
-  public async pingHttpServiceBackend(id: number, reqPath: string = '/') {
+  public async pingHttpServiceBackend(
+    id: number,
+    reqPath: string = '/',
+  ): Promise<{ status: number }> {
     const httpService = await this.getHttpService(id, ['node']);
 
     let options: AxiosRequestConfig = {
-      timeout: 3000
+      timeout: 3000,
     };
 
     if (httpService.backendProto === 'https') {
       options = Object.assign(options, {
         httpsAgent: new https.Agent({
-          rejectUnauthorized: false
-        })
-      })
+          rejectUnauthorized: false,
+        }),
+      });
     }
 
-    const backendUrl = new URL(reqPath, `${httpService.backendProto}://${httpService.node.address}:${httpService.backendPort}`);
+    const backendUrl = new URL(
+      reqPath,
+      `${httpService.backendProto}://${httpService.node.address}:${httpService.backendPort}`,
+    );
 
     try {
       const response = await axios.get(backendUrl.href, options);
-      
+
       if (response.status >= 200 && response.status < 400) {
         return {
-          status: response.status
-        }
+          status: response.status,
+        };
       }
       return;
     } catch (e) {
@@ -119,25 +143,14 @@ export class HttpServicesService {
     }
   }
 
-  async buildServerConfig(httpService: HttpService, restart = true): Promise<void> {
-    // const builder = new NginxConfigBuilder(httpService, restart);
-
-    // const nginxConf = builder
-    //   .setHttpListen()
-    //   .setDomain()
-    //   .setSslCertificates()
-    //   .setCommonConfigs()
-    //   .addProxiedService(
-    //     httpService.pathLocation,
-    //     httpService.backendProto,
-    //     httpService.node.isGateway && httpService.backendHost ? httpService.backendHost : httpService.node.address,
-    //     httpService.backendPort
-    //   )
+  async buildServerConfig(
+    httpService: HttpService,
+    restart = true,
+  ): Promise<void> {
     if (httpService.domain) {
       await this.domainService.createDomainIfNotExists(httpService.domain);
     }
 
-    // await nginxConf.build();
     await NginxManager.addHttpService(httpService, restart);
   }
 }

@@ -1,4 +1,3 @@
-import config from '../../config';
 import { WgInterface } from '../../database/models/wg-interface';
 import { Node } from '../../database/models/node';
 
@@ -9,7 +8,7 @@ export default class ServerConfigBuilder {
     this.setServer(wgInterface);
   }
 
-  private setServer(wgInterface: WgInterface) {
+  private setServer(wgInterface: WgInterface): void {
     this.config = `# Server
 [Interface]
 PrivateKey = ${wgInterface.privateKey}
@@ -22,7 +21,7 @@ PostDown = ${wgInterface.postDown}
 `;
   }
 
-  public addClient(client: Node) {
+  public addClient(client: Node): ServerConfigBuilder {
     this.config += `
 # ${client.isGateway ? 'Gateway' : 'Client'} ${client.name} (${client.id})
 [Peer]

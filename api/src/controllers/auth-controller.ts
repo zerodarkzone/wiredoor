@@ -1,27 +1,37 @@
-import { Body, CurrentUser, Get, JsonController, Post, UseBefore } from 'routing-controllers';
+import {
+  Body,
+  CurrentUser,
+  Get,
+  JsonController,
+  Post,
+  UseBefore,
+} from 'routing-controllers';
 import { Inject, Service } from 'typedi';
-import { AdminAuthService } from '../services/admin-auth-service';
+import { AdminAuthService, JWTResponse } from '../services/admin-auth-service';
 import { celebrate, Joi } from 'celebrate';
 import rateLimit from 'express-rate-limit';
-import { AuthTokenHandler } from '../middlewares/auth-token-handler';
+import {
+  AuthenticatedUser,
+  AuthTokenHandler,
+} from '../middlewares/auth-token-handler';
 
 @Service()
 @JsonController('/auth')
 export default class AuthController {
-  constructor (
-    @Inject() private readonly authService: AdminAuthService,
-  ) {}
+  constructor(@Inject() private readonly authService: AdminAuthService) {}
 
   @Get('/me')
   @UseBefore(
     rateLimit({
       windowMs: 60 * 1000, // 1min
       max: 60,
-      message: 'Rate Limit exceeded'
+      message: 'Rate Limit exceeded',
     }),
-    AuthTokenHandler
+    AuthTokenHandler,
   )
-  async getUser(@CurrentUser({ required: true }) user) {
+  async getUser(
+    @CurrentUser({ required: true }) user: AuthenticatedUser,
+  ): Promise<AuthenticatedUser> {
     return user;
   }
 
@@ -31,15 +41,17 @@ export default class AuthController {
       body: {
         username: Joi.string().required(),
         password: Joi.string().required(),
-      }
+      },
     }),
     rateLimit({
       windowMs: 10 * 60 * 1000, // 10min
       max: 5,
-      message: 'Rate Limit exceeded'
-    })
+      message: 'Rate Limit exceeded',
+    }),
   )
-  async authenticate(@Body() params: { username: string, password: string }) {
+  async authenticate(
+    @Body() params: { username: string; password: string },
+  ): Promise<JWTResponse> {
     return this.authService.auth(params.username, params.password);
   }
 }

@@ -13,13 +13,16 @@ import { DomainRepository } from '../../repositories/domain-repository';
 import ServerUtils from '../../utils/server';
 
 export class NginxManager {
-
-  static async addDomainServer(domain: Domain, restart = true) {
+  static async addDomainServer(
+    domain: Domain,
+    restart = true,
+  ): Promise<boolean> {
     const domianName = domain.domain;
 
     const serverConf = new NginxServerConf();
 
-    serverConf.setListen('443 ssl')
+    serverConf
+      .setListen('443 ssl')
       .setListen('[::]:443 ssl')
       .setServerName(domianName)
       .setAccessLog(ServerUtils.getLogFilePath(domianName, 'access.log'))
@@ -35,12 +38,18 @@ export class NginxManager {
     return this.checkConfig(confFile, restart);
   }
 
-  static async removeDomainServerConfig(domain: Domain, restart = true) {
+  static async removeDomainServerConfig(
+    domain: Domain,
+    restart = true,
+  ): Promise<void> {
     const domainName = domain.domain;
     await FileManager.removeFile(`/etc/nginx/conf.d/${domainName}.conf`);
-    
+
     if (domain.ssl === 'self-signed') {
-      const certPath = SSLManager.getCertPath(domainName, domain.ssl as SSLTermination);
+      const certPath = SSLManager.getCertPath(
+        domainName,
+        domain.ssl as SSLTermination,
+      );
 
       await FileManager.removeDir(certPath);
     } else {
@@ -54,12 +63,17 @@ export class NginxManager {
     }
   }
 
-  static async addHttpService(service: HttpService, restart = true) {
-    if(!service.enabled) {
+  static async addHttpService(
+    service: HttpService,
+    restart = true,
+  ): Promise<boolean> {
+    if (!service.enabled) {
       return;
     }
 
-    const serviceLocation = new NginxLocationConf();
+    const serviceLocation: NginxLocationConf = new NginxLocationConf();
+
+    serviceLocation.setProxyPass('');
 
     let host = service.node.address;
 
@@ -71,24 +85,31 @@ export class NginxManager {
       }
     }
 
-    serviceLocation;
-
     serviceLocation
       .setNetworkAccess(service.allowedIps)
       .setClientMaxBodySize('100m')
       .addBlock(`set $${service.identifier}`, host)
-      .setProxyPass(`${service.backendProto}://$${service.identifier}:${service.backendPort}`);
+      .setProxyPass(
+        `${service.backendProto}://$${service.identifier}:${service.backendPort}`,
+      );
 
     if (service.backendProto === 'https') {
       serviceLocation.setProxySslVerify('off');
     }
 
-    const confFile = await this.saveLocation(serviceLocation, service.domain, service.pathLocation);
+    const confFile = await this.saveLocation(
+      serviceLocation,
+      service.domain,
+      service.pathLocation,
+    );
 
     return this.checkConfig(confFile, restart);
   }
 
-  static async removeHttpService(service: HttpService, restart = true) {
+  static async removeHttpService(
+    service: HttpService,
+    restart = true,
+  ): Promise<void> {
     await this.removeLocation(service.domain, service.pathLocation);
 
     if (restart) {
@@ -96,7 +117,10 @@ export class NginxManager {
     }
   }
 
-  static async handleTcpService(service: TcpService, restart = true): Promise<boolean> {
+  static async handleTcpService(
+    service: TcpService,
+    restart = true,
+  ): Promise<boolean> {
     if (!service.enabled) {
       return;
     }
@@ -104,30 +128,40 @@ export class NginxManager {
     const streamConf = new NginxConf();
 
     if (
-      service.node.isGateway 
-      && service.backendHost 
-      && !IP_CIDR.isValidIP(service.backendHost)
+      service.node.isGateway &&
+      service.backendHost &&
+      !IP_CIDR.isValidIP(service.backendHost)
     ) {
       streamConf.addBlock('resolver', `${service.node.address} valid=30s`);
     }
 
-    const serverAddress = service.node.isGateway && service.backendHost ? service.backendHost : service.node.address;
+    const serverAddress =
+      service.node.isGateway && service.backendHost
+        ? service.backendHost
+        : service.node.address;
 
-    streamConf.addUpstreams(
-      service.identifier,
-      [`${serverAddress}:${service.backendPort}`]
-    );
+    streamConf.addUpstreams(service.identifier, [
+      `${serverAddress}:${service.backendPort}`,
+    ]);
 
     const serverConf = new NginxServerConf();
 
     serverConf
       .setListen(`${service.port}${service.proto === 'udp' ? ' udp' : ''}`)
       .setServerName(service.domain || '')
-      .setAccessLog(ServerUtils.getLogFilePath(service.domain || '_', `${service.identifier}_stream.log`), 'stream_logs');
+      .setAccessLog(
+        ServerUtils.getLogFilePath(
+          service.domain || '_',
+          `${service.identifier}_stream.log`,
+        ),
+        'stream_logs',
+      );
 
     if (service.ssl) {
       if (service.domain) {
-        const domain = await Container.get(DomainRepository).getDomainByName(service.domain);
+        const domain = await Container.get(DomainRepository).getDomainByName(
+          service.domain,
+        );
 
         serverConf.setStreamSSLCertificate(domain.sslPair);
       } else {
@@ -147,15 +181,20 @@ export class NginxManager {
     return this.checkConfig(confFile, restart);
   }
 
-  static async removeTcpService(service: TcpService, restart = true) {
-    await FileManager.removeFile(`/etc/nginx/stream.d/${service.identifier}.conf`);
+  static async removeTcpService(
+    service: TcpService,
+    restart = true,
+  ): Promise<void> {
+    await FileManager.removeFile(
+      `/etc/nginx/stream.d/${service.identifier}.conf`,
+    );
 
     if (restart) {
       await this.reloadServer();
     }
   }
 
-  static async checkConfig(confFile: string, restart = true) {
+  static async checkConfig(confFile: string, restart = true): Promise<boolean> {
     const check = await this.testServer();
 
     if (!check) {
@@ -171,15 +210,25 @@ export class NginxManager {
     return true;
   }
 
-  static async saveLocation(config: NginxLocationConf, domain?: string, location: string = '/') {
+  static async saveLocation(
+    config: NginxLocationConf,
+    domain?: string,
+    location: string = '/',
+  ): Promise<string> {
     const confFile = this.getLocationFile(domain, location);
 
-    await FileManager.saveToFile(confFile, config.getLocationNginxConf(location));
+    await FileManager.saveToFile(
+      confFile,
+      config.getLocationNginxConf(location),
+    );
 
     return confFile;
   }
 
-  static async removeLocation(domain?: string, location: string = '/') {
+  static async removeLocation(
+    domain?: string,
+    location: string = '/',
+  ): Promise<void> {
     const confFile = this.getLocationFile(domain, location);
 
     await FileManager.removeFile(confFile);
@@ -189,16 +238,17 @@ export class NginxManager {
     await CLI.exec(`nginx -s reload`);
   }
 
-  private static async addDefaultMainLocation(domain?: string) {
+  private static async addDefaultMainLocation(
+    domain?: string,
+  ): Promise<string> {
     const defaultLocationConf = new NginxLocationConf();
 
-    defaultLocationConf.
-      setRoot('/etc/nginx/default_pages')
+    defaultLocationConf.setRoot('/etc/nginx/default_pages');
 
     return this.saveLocation(defaultLocationConf, domain);
   }
 
-  private static getLocationFile(domain?: string, path: string = '/') {
+  private static getLocationFile(domain?: string, path: string = '/'): string {
     const locPath = `/etc/nginx/locations/${domain && domain !== '_' ? domain : 'default'}`;
     FileManager.mkdirSync(locPath);
 
@@ -209,13 +259,13 @@ export class NginxManager {
     } else {
       transformed = transformed.replace(/\//g, '-');
     }
-  
+
     return `${locPath}/${transformed}.conf`;
   }
 
   private static async testServer(): Promise<boolean> {
     try {
-      const { stdout } = await CLI.exec('nginx -t');
+      await CLI.exec('nginx -t');
 
       return true;
     } catch (e) {

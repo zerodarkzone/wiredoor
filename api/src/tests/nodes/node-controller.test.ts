@@ -11,7 +11,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  app.close && (await app.close());
+  await app.close();
 });
 
 describe('Nodes Management API', () => {
@@ -23,19 +23,26 @@ describe('Nodes Management API', () => {
     });
     it('should list nodes paginated', async () => {
       const token = mockAuthenticatedToken();
-      await request.post('/api/nodes')
+      await request
+        .post('/api/nodes')
         .set('Authorization', `Bearer ${token}`)
         .send({ name: 'client' });
-      const res = await request.get('/api/nodes').set('Authorization', `Bearer ${token}`);
+      const res = await request
+        .get('/api/nodes')
+        .set('Authorization', `Bearer ${token}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.data[0]).toEqual(expect.objectContaining({
-        name: 'client'
-      }));
-      expect(res.body.data[0]).toEqual(expect.not.objectContaining({
-        privateKey: expect.any(String),
-        preSharedKey: expect.any(String),
-      }));
+      expect(res.body.data[0]).toEqual(
+        expect.objectContaining({
+          name: 'client',
+        }),
+      );
+      expect(res.body.data[0]).toEqual(
+        expect.not.objectContaining({
+          privateKey: expect.any(String),
+          preSharedKey: expect.any(String),
+        }),
+      );
     });
   });
   describe('POST /api/nodes', () => {
@@ -46,7 +53,8 @@ describe('Nodes Management API', () => {
     });
     it('should create node', async () => {
       const token = mockAuthenticatedToken();
-      const res = await request.post('/api/nodes')
+      const res = await request
+        .post('/api/nodes')
         .set('Authorization', `Bearer ${token}`)
         .send({ name: 'client' });
 
@@ -62,21 +70,26 @@ describe('Nodes Management API', () => {
     });
     it('should get node by id', async () => {
       const token = mockAuthenticatedToken();
-      const createdRes = await request.post('/api/nodes')
+      const createdRes = await request
+        .post('/api/nodes')
         .set('Authorization', `Bearer ${token}`)
         .send({ name: 'clientCreated' });
 
-      const res = await request.get(`/api/nodes/${createdRes.body.id}`).set('Authorization', `Bearer ${token}`);
+      const res = await request
+        .get(`/api/nodes/${createdRes.body.id}`)
+        .set('Authorization', `Bearer ${token}`);
 
       expect(res.status).toBe(200);
       expect(res.body.name).toEqual('clientCreated');
     });
     it('should return 404 error if node does not exists', async () => {
       const token = mockAuthenticatedToken();
-      const res = await request.get(`/api/nodes/1000`).set('Authorization', `Bearer ${token}`);
+      const res = await request
+        .get(`/api/nodes/1000`)
+        .set('Authorization', `Bearer ${token}`);
 
       expect(res.status).toBe(404);
-    })
+    });
   });
   describe('PATCH /api/nodes/:id', () => {
     it('should reject unauthenticated if no token provided', async () => {
@@ -86,11 +99,13 @@ describe('Nodes Management API', () => {
     });
     it('should update node', async () => {
       const token = mockAuthenticatedToken();
-      const createdRes = await request.post('/api/nodes')
+      const createdRes = await request
+        .post('/api/nodes')
         .set('Authorization', `Bearer ${token}`)
         .send({ name: 'clientCreated' });
 
-      const res = await request.patch(`/api/nodes/${createdRes.body.id}`)
+      const res = await request
+        .patch(`/api/nodes/${createdRes.body.id}`)
         .set('Authorization', `Bearer ${token}`)
         .send({ name: 'clientUpdated' });
 
@@ -106,16 +121,20 @@ describe('Nodes Management API', () => {
     });
     it('should delete node', async () => {
       const token = mockAuthenticatedToken();
-      const createdRes = await request.post('/api/nodes')
+      const createdRes = await request
+        .post('/api/nodes')
         .set('Authorization', `Bearer ${token}`)
         .send({ name: 'clientCreated' });
 
-      const res = await request.delete(`/api/nodes/${createdRes.body.id}`)
+      const res = await request
+        .delete(`/api/nodes/${createdRes.body.id}`)
         .set('Authorization', `Bearer ${token}`);
 
       expect(res.status).toBe(200);
 
-      const deletedRes = await request.get(`/api/nodes/${createdRes.body.id}`).set('Authorization', `Bearer ${token}`);
+      const deletedRes = await request
+        .get(`/api/nodes/${createdRes.body.id}`)
+        .set('Authorization', `Bearer ${token}`);
 
       expect(deletedRes.status).toBe(404);
     });

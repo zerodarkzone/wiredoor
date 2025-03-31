@@ -1,5 +1,12 @@
 import { Exclude } from 'class-transformer';
-import { Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  Index,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 export enum SSLTermination {
   SelfSigned = 'self-signed',
@@ -21,22 +28,22 @@ export class Domain {
     length: 40,
   })
   domain: string;
-  
+
   @Column({
     default: SSLTermination.SelfSigned,
   })
   ssl: string;
-  
+
   @Exclude()
-  @Column("simple-json", {
-    nullable: true
+  @Column('simple-json', {
+    nullable: true,
   })
   sslPair: SSLCerts;
 
   @Column({
-    default: true,
+    default: false,
   })
-  validation: boolean;
+  skipValidation: boolean;
 
   @CreateDateColumn()
   //@CreateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP(6)" })

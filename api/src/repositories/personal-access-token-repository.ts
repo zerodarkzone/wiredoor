@@ -4,7 +4,7 @@ import { PersonalAccessToken } from '../database/models/personal-access-token';
 
 @Service()
 export class PersonalAccessTokenRepository extends Repository<PersonalAccessToken> {
-  constructor (@Inject('dataSource') dataSource: DataSource) {
+  constructor(@Inject('dataSource') dataSource: DataSource) {
     super(PersonalAccessToken, dataSource.createEntityManager());
   }
 }

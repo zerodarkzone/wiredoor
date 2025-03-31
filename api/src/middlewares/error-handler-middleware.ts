@@ -1,9 +1,14 @@
-import { HttpError } from "routing-controllers";
-import { Request, Response, NextFunction } from "express";
-import { ValidationError } from "../utils/errors/validation-error";
+import { HttpError } from 'routing-controllers';
+import { Request, Response, NextFunction } from 'express';
+import { ValidationError } from '../utils/errors/validation-error';
 import { isCelebrateError } from 'celebrate';
 
-export function errorHandlerMiddleware(err: any, req: Request, res: Response, next: NextFunction) {
+export function errorHandlerMiddleware(
+  err: unknown,
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void | Response<unknown, Record<string, unknown>> {
   if (res.headersSent) {
     return next(err);
   }
@@ -15,8 +20,8 @@ export function errorHandlerMiddleware(err: any, req: Request, res: Response, ne
       validation[segment] = joiError.details.map((detail) => {
         return {
           field: detail.path.join('.'),
-          message: detail.message
-        }
+          message: detail.message,
+        };
       });
     }
 
@@ -36,7 +41,7 @@ export function errorHandlerMiddleware(err: any, req: Request, res: Response, ne
   if (err instanceof HttpError) {
     res.status(err.httpCode);
     if (err.httpCode >= 500) {
-      console.error(err)
+      console.error(err);
     }
   } else {
     res.status(400);
@@ -44,6 +49,6 @@ export function errorHandlerMiddleware(err: any, req: Request, res: Response, ne
 
   return res.json({
     status: 'error',
-    message: err.message || err.name || 'Unknown error'
+    message: 'Unknown error',
   });
 }

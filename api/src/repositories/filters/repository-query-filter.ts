@@ -9,25 +9,32 @@ export interface FilterQueryDto {
   [field: string]: string | string[] | number | undefined;
 }
 
+export interface PagedData<T> {
+  data: T[];
+  page: number;
+  limit: number;
+  total: number;
+}
+
 export abstract class RepositoryQueryFilter<T> {
   protected filters: FilterQueryDto;
   protected builder: SelectQueryBuilder<T>;
 
   constructor(protected repository: Repository<T>) {}
 
-  private initBuilder() {
+  private initBuilder(): void {
     this.builder = this.repository.createQueryBuilder();
   }
 
   public before(): void {
-    // TODO
+    // To use if necessary in child classes
   }
 
   protected allowedRelations(): string[] {
     return [];
   }
 
-  public apply(filters: FilterQueryDto): Promise<any> {
+  public apply(filters: FilterQueryDto): Promise<T | T[] | PagedData<T>> {
     this.filters = filters;
     this.initBuilder();
 
@@ -46,28 +53,34 @@ export abstract class RepositoryQueryFilter<T> {
     return this.finish();
   }
 
-  protected applyRelations() {
+  protected applyRelations(): void {
     const allowed = this.allowedRelations();
     const relations = this.filters.relations;
-  
+
     if (Array.isArray(relations) && relations.length > 0) {
       for (const relation of relations) {
         if (allowed.includes(relation)) {
-          this.builder = this.builder.leftJoinAndSelect(`${this.builder.alias}.${relation}`, relation);
+          this.builder = this.builder.leftJoinAndSelect(
+            `${this.builder.alias}.${relation}`,
+            relation,
+          );
         }
       }
     }
   }
 
-  protected applyOrdering() {
+  protected applyOrdering(): void {
     const orderBy = this.filters.orderBy as string;
 
     if (orderBy) {
-      this.builder = this.builder.orderBy(`${this.builder.alias}.${orderBy.split(',')[0]}`, orderBy.split(',')[1].toUpperCase() as 'ASC' | 'DESC');
+      this.builder = this.builder.orderBy(
+        `${this.builder.alias}.${orderBy.split(',')[0]}`,
+        orderBy.split(',')[1].toUpperCase() as 'ASC' | 'DESC',
+      );
     }
   }
 
-  protected async finish(): Promise<any> {
+  protected async finish(): Promise<T | T[] | PagedData<T>> {
     if (this.filters.id) {
       return this.builder.getOne();
     } else if (this.filters.limit) {
@@ -75,7 +88,10 @@ export abstract class RepositoryQueryFilter<T> {
       const limit = +this.filters?.limit || 12;
       const offset = (page - 1) * limit;
 
-      const [data, total] = await this.builder.skip(offset).take(limit).getManyAndCount()
+      const [data, total] = await this.builder
+        .skip(offset)
+        .take(limit)
+        .getManyAndCount();
 
       return {
         data,

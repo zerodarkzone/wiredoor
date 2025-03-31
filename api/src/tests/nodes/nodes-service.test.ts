@@ -9,7 +9,13 @@ import { HttpServiceRepository } from '../../repositories/http-service-repositor
 import { makeNodeData } from './stubs/node.stub';
 import WireguardService from '../../services/wireguard/wireguard-service';
 import { NodeQueryFilter } from '../../repositories/filters/node-query-filter';
-import { mockGenPreSharedKey, mockGenPrivateKey, mockGenPublicKey, mockSaveToFile, mockSyncConf } from '../.jest/global-mocks';
+import {
+  mockGenPreSharedKey,
+  mockGenPrivateKey,
+  mockGenPublicKey,
+  mockSaveToFile,
+  mockSyncConf,
+} from '../.jest/global-mocks';
 import { NotFoundError } from 'routing-controllers';
 import { HttpServiceQueryFilter } from '../../repositories/filters/http-service-query-filter';
 import { PatService } from '../../services/pat-service';
@@ -21,6 +27,8 @@ import { TcpServiceQueryFilter } from '../../repositories/filters/tcp-service-qu
 import { DomainRepository } from '../../repositories/domain-repository';
 import { DomainsService } from '../../services/domains-service';
 import { DomainQueryFilter } from '../../repositories/filters/domain-query-filter';
+import { PagedData } from '../../repositories/filters/repository-query-filter';
+import { NodeInfo } from '../../database/models/node';
 
 let app;
 let dataSource: DataSource;
@@ -31,7 +39,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  app.close && (await app.close());
+  await app.close();
 });
 
 describe('Nodes Service', () => {
@@ -58,13 +66,38 @@ describe('Nodes Service', () => {
     patRepository = new PersonalAccessTokenRepository(dataSource);
     domainRepository = new DomainRepository(dataSource);
 
-    wireguardService = new WireguardService(new WgInterfaceRepository(dataSource), repository);
-    domainService = new DomainsService(domainRepository, new DomainQueryFilter(domainRepository));
-    httpServicesService = new HttpServicesService(httpServiceRepository, new HttpServiceQueryFilter(httpServiceRepository), domainService);
-    tcpServicesService = new TcpServicesService(tcpServiceRepository, new TcpServiceQueryFilter(tcpServiceRepository), repository, domainService);
-    patService = new PatService(patRepository, new PatQueryFilter(patRepository));
+    wireguardService = new WireguardService(
+      new WgInterfaceRepository(dataSource),
+      repository,
+    );
+    domainService = new DomainsService(
+      domainRepository,
+      new DomainQueryFilter(domainRepository),
+    );
+    httpServicesService = new HttpServicesService(
+      httpServiceRepository,
+      new HttpServiceQueryFilter(httpServiceRepository),
+      domainService,
+    );
+    tcpServicesService = new TcpServicesService(
+      tcpServiceRepository,
+      new TcpServiceQueryFilter(tcpServiceRepository),
+      repository,
+      domainService,
+    );
+    patService = new PatService(
+      patRepository,
+      new PatQueryFilter(patRepository),
+    );
 
-    service = new NodesService(repository, filter, wireguardService, httpServicesService, tcpServicesService, patService);
+    service = new NodesService(
+      repository,
+      filter,
+      wireguardService,
+      httpServicesService,
+      tcpServicesService,
+      patService,
+    );
   });
 
   afterEach(async () => {
@@ -76,21 +109,21 @@ describe('Nodes Service', () => {
     it('should get all nodes', async () => {
       const data = makeNodeData();
 
-      const node = await service.createNode(data);
+      await service.createNode(data);
 
       const result = await service.getNodes({});
 
-      expect((result as unknown as Node[]).length).toEqual(1);
+      expect((result as NodeInfo[]).length).toEqual(1);
     });
     it('should get nodes paginated', async () => {
       const data = makeNodeData();
 
-      const node = await service.createNode(data);
+      await service.createNode(data);
 
       const result = await service.getNodes({ limit: 1 });
 
-      expect(result.data.length).toEqual(1);
-      expect(result.limit).toEqual(1);
+      expect((result as PagedData<NodeInfo>).data.length).toEqual(1);
+      expect((result as PagedData<NodeInfo>).limit).toEqual(1);
     });
   });
 
@@ -108,7 +141,7 @@ describe('Nodes Service', () => {
         `/etc/wireguard/wg0.conf`,
         expect.stringContaining(data.name),
         'utf-8',
-        0o600
+        0o600,
       );
       expect(mockSyncConf).toHaveBeenCalledTimes(1);
 
@@ -116,7 +149,7 @@ describe('Nodes Service', () => {
       expect(result.id).toBeDefined();
       expect(result.address).toBeDefined();
 
-      const createdNode = await repository.findOneBy({id: result.id});
+      const createdNode = await repository.findOneBy({ id: result.id });
 
       expect(createdNode?.name).toEqual(data.name);
     });
@@ -181,7 +214,7 @@ describe('Nodes Service', () => {
         `/etc/wireguard/wg0.conf`,
         expect.stringContaining(update.address as string),
         'utf-8',
-        0o600
+        0o600,
       );
       expect(mockSyncConf).toHaveBeenCalledTimes(1);
 
@@ -197,17 +230,19 @@ describe('Nodes Service', () => {
 
       jest.clearAllMocks();
 
-      const result = await service.deleteNode(created.id);
+      await service.deleteNode(created.id);
 
       expect(mockSaveToFile).toHaveBeenCalledWith(
         `/etc/wireguard/wg0.conf`,
         expect.any(String),
         'utf-8',
-        0o600
+        0o600,
       );
       expect(mockSyncConf).toHaveBeenCalledTimes(1);
 
-      await expect(service.getNode(created.id)).rejects.toBeInstanceOf(NotFoundError);
+      await expect(service.getNode(created.id)).rejects.toBeInstanceOf(
+        NotFoundError,
+      );
     });
   });
 });

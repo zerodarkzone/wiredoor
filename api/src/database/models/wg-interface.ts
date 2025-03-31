@@ -18,20 +18,20 @@ export class WgInterface {
   @Column()
   @Index({ unique: true })
   subnet: string;
-  
+
   @Column()
   @Index({ unique: true })
   port: string;
 
   @Column()
   preUp?: string;
-  
+
   @Column()
   postUp?: string;
 
   @Column()
   preDown?: string;
-  
+
   @Column()
   postDown?: string;
 

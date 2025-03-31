@@ -12,14 +12,13 @@ import ConfigController from '../controllers/config-controller';
 import LogController from '../controllers/log-controller';
 import { errorHandlerMiddleware } from '../middlewares/error-handler-middleware';
 
-export default ({ app }: {app: express.Application}) => {
-
+export default ({ app }: { app: express.Application }): void => {
   app.use(compression());
   app.use(bodyParser.json({ limit: '1mb' }));
   app.use(bodyParser.urlencoded({ extended: true, limit: '100kb' }));
 
   // Express Routing Controllers
-  useContainer(Container)
+  useContainer(Container);
   useExpressServer(app, {
     routePrefix: 'api',
     defaultErrorHandler: false,
@@ -41,7 +40,7 @@ export default ({ app }: {app: express.Application}) => {
           callback(new Error('Not allowed by CORS'));
         }
       },
-      credentials: true
+      credentials: true,
     },
     // authorizationChecker: async (action: Action) => {
     //   if (action.request.user) {
@@ -52,8 +51,8 @@ export default ({ app }: {app: express.Application}) => {
     // },
     currentUserChecker: (action: Action) => {
       return action.request.user;
-    }
+    },
   });
 
-  app.use(errorHandlerMiddleware)
-}
+  app.use(errorHandlerMiddleware);
+};
