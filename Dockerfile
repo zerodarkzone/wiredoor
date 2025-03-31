@@ -24,7 +24,7 @@ RUN mkdir -p /var/log/supervisor \
 
 FROM base AS dev-container
 
-RUN apk add --update git nano curl bash \
+RUN apk add --update git rsync nano curl bash \
   && rm -f /etc/supervisor/conf.d/app.conf
 
 CMD [ "bash", "-c", "/usr/bin/supervisord -ns -c /etc/supervisor/supervisord.conf" ]
