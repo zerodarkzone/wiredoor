@@ -1,8 +1,11 @@
 {
   "name": "Wiredoor Dev Container",
-  "image": "ghcr.io/wiredoor/dev-container:latest",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "target": "dev-container"
+  },
   "overrideCommand": false,
-  "workspaceFolder": "/workspaces/wiredoor",
+  "workspaceFolder": "/app",
   "customizations": {
     "vscode": {
       "extensions": [
@@ -15,16 +18,15 @@
       "settings": {
         "typescript.preferences.importModuleSpecifier": "relative",
         "editor.formatOnSave": true,
-        "eslint.validate": ["typescript", "javascript", "vue"]
+        "eslint.validate": ["typescript", "javascript", "vue"],
+        "terminal.integrated.defaultProfile.linux": "bash"
       }
     }
   },
   "mounts": [
-    "type=volume,source=wiredoor_api_node_modules,target=/workspaces/wiredoor/api/node_modules",
-    "type=volume,source=wiredoor_ui_node_modules,target=/workspaces/wiredoor/ui/node_modules",
-    "type=volume,source=wiredoor_node_modules,target=/workspaces/wiredoor/node_modules"
+    "source=wiredoor-vol,target=/app,type=volume"
   ],
-  "postCreateCommand": "npm install --recursive",
+  "postCreateCommand": "rsync -a --delete /workspaces/wiredoor/ /app/",
   "remoteUser": "root",
   "capAdd": [ "NET_ADMIN" ]
 }
