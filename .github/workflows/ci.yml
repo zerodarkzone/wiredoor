@@ -28,9 +28,7 @@ jobs:
 
       - name: Build Dev Image
         run: |
-          docker build -t wiredoor:dev \
-            --target development \
-            -f Dockerfile
+          docker build -t wiredoor:dev --target development -f Dockerfile .
 
   lint:
     name: Lint Dev Image
