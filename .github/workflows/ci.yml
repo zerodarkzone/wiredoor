@@ -30,11 +30,15 @@ jobs:
         run: |
           docker build -t wiredoor:dev --target development -f Dockerfile .
 
+      - name: Save image to tarball
+        run: |
+          docker save wiredoor:dev > wiredoor-dev.tar
+
       - name: Upload image as artifact
         uses: actions/upload-artifact@v3
         with:
-          name: wiredoor-api-dev
-          path: wiredoor-api-dev.tar
+          name: wiredoor-dev
+          path: wiredoor-dev.tar
 
   lint:
     name: Lint Dev Image
@@ -45,10 +49,10 @@ jobs:
       - name: Download image
         uses: actions/download-artifact@v3
         with:
-          name: wiredoor-api-dev
+          name: wiredoor-dev
 
       - name: Load image
-        run: docker load < wiredoor-api-dev.tar
+        run: docker load < wiredoor-dev.tar
 
       - name: Run Lint
         run: |
@@ -63,10 +67,10 @@ jobs:
       - name: Download image
         uses: actions/download-artifact@v3
         with:
-          name: wiredoor-api-dev
+          name: wiredoor-dev
 
       - name: Load image
-        run: docker load < wiredoor-api-dev.tar
+        run: docker load < wiredoor-dev.tar
 
       - name: Run Tests
         run: |
