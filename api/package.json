@@ -4,7 +4,7 @@
   "description": "An easy way to run and manage WireGuard from Web UI and optionally expose corporate services",
   "main": "src/main.js",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc -p tsconfig.json",
     "dev": "nodemon",
     "lint": "eslint 'src/**/*.ts'",
     "migration:create": "typeorm migration:create ",

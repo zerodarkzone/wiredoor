@@ -40,7 +40,7 @@ export default defineConfig([
 
       parserOptions: {
         project: 'tsconfig.eslint.json',
-        tsconfigRootDir: '/workspaces/wiredoor/api',
+        tsconfigRootDir: __dirname,
       },
     },
 

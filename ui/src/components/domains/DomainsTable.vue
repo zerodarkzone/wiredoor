@@ -53,7 +53,7 @@ const editNode = (domain: Domain) => {
   openDomainForm(handleSubmit, domain, domain.id)
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 const handleSubmit = (data: DomainForm, id: number | undefined = undefined) => {
   if (id) {
     table.value.updateItem(id, data)

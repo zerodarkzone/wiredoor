@@ -30,6 +30,7 @@ import { DomainQueryFilter } from '../../repositories/filters/domain-query-filte
 import { PagedData } from '../../repositories/filters/repository-query-filter';
 import { NodeInfo } from '../../database/models/node';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 let app;
 let dataSource: DataSource;
 

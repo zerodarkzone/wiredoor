@@ -1,8 +1,5 @@
 <script setup lang="ts">
 import SvgIcon from '@/components/SvgIcon'
-import { useRoute } from 'vue-router'
-
-const route = useRoute()
 </script>
 <template>
   <div class="px-4 sm:px-6 lg:px-8 py-8 w-full h-screen max-w-[96rem] mx-auto">

@@ -5,8 +5,11 @@
     "moduleResolution": "Node",
     "esModuleInterop": true,
     "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
+      "@wiredoor/shared": ["shared/src/index.ts"],
       "@wiredoor/shared/*": ["shared/src/*"]
     }
   }

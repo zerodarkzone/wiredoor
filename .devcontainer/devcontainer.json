@@ -13,7 +13,8 @@
         "dbaeumer.vscode-eslint",
         "EditorConfig.EditorConfig",
         "esbenp.prettier-vscode",
-        "orta.vscode-jest"
+        "orta.vscode-jest",
+        "cweijan.vscode-database-client2"
       ],
       "settings": {
         "typescript.preferences.importModuleSpecifier": "relative",

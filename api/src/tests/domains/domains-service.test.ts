@@ -16,6 +16,7 @@ import { makeDomainData } from './stubs/domain.stub';
 import { PagedData } from '../../repositories/filters/repository-query-filter';
 import { Domain } from '../../database/models/domain';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 let app;
 let dataSource: DataSource;
 

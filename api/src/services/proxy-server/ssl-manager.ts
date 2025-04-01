@@ -4,7 +4,7 @@ import CLI from '../../utils/cli';
 import { SSLTermination, SSLCerts } from '../../database/models/domain';
 import config from '../../config';
 
-const selfSignedCertificatePath = '/data/ssl';
+const selfSignedCertificatePath = '/etc/nginx/ssl';
 const opensslConf = '/etc/openssl/openssl.cnf';
 
 export class SSLManager {
@@ -46,20 +46,27 @@ export class SSLManager {
   }
 
   static async generateDefaultCerts(): Promise<void> {
-    if (FileManager.mkdirSync(selfSignedCertificatePath)) {
-      const defaultKey = `${selfSignedCertificatePath}/privkey.key`;
-      const defaultCert = `${selfSignedCertificatePath}/cert.crt`;
+    if (
+      FileManager.mkdirSync(`/data/ssl`) &&
+      FileManager.mkdirSync(selfSignedCertificatePath)
+    ) {
+      const defaultKey = `/data/ssl/privkey.key`;
+      const defaultCert = `/data/ssl/cert.crt`;
       if (!FileManager.isPath(defaultCert) && !FileManager.isPath(defaultKey)) {
         await CLI.exec(`openssl genpkey -algorithm RSA -out ${defaultKey}`);
         await CLI.exec(
-          `openssl req -new -key ${defaultKey} -out ${selfSignedCertificatePath}/default.csr -config ${opensslConf}`,
+          `openssl req -new -key ${defaultKey} -out /data/ssl/default.csr -config ${opensslConf}`,
         );
         await CLI.exec(
-          `openssl x509 -req -days 3650 -in ${selfSignedCertificatePath}/default.csr -signkey ${defaultKey} -out ${defaultCert}`,
+          `openssl x509 -req -days 3650 -in /data/ssl/default.csr -signkey ${defaultKey} -out ${defaultCert}`,
         );
       }
-      await CLI.exec(`ln -sfn ${defaultKey} /etc/nginx/ssl/privkey.key`);
-      await CLI.exec(`ln -sfn ${defaultCert} /etc/nginx/ssl/cert.crt`);
+      await CLI.exec(
+        `ln -sfn ${defaultKey} ${selfSignedCertificatePath}/privkey.key`,
+      );
+      await CLI.exec(
+        `ln -sfn ${defaultCert} ${selfSignedCertificatePath}/cert.crt`,
+      );
     }
   }
 

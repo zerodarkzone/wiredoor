@@ -33,6 +33,7 @@ import { SSLTermination } from '../../database/models/domain';
 import { TcpService } from '../../database/models/tcp-service';
 import { PagedData } from '../../repositories/filters/repository-query-filter';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 let app;
 let dataSource: DataSource;
 
@@ -250,6 +251,8 @@ describe('TCP Services Service', () => {
       expect(result.id).toBeDefined();
       expect(result.domain).toEqual(serviceData.domain);
 
+      console.log(mockSaveToFile.mock.calls);
+
       expect(mockSaveToFile.mock.calls).toEqual([
         [
           `/etc/nginx/conf.d/${serviceData.domain}.conf`,
@@ -378,7 +381,7 @@ describe('TCP Services Service', () => {
 
       jest.clearAllMocks();
 
-      const result = await service.deleteTcpService(created.id);
+      await service.deleteTcpService(created.id);
 
       expect(mockRemoveFile).toHaveBeenCalledWith(
         expect.stringContaining(`/n${node.id}s${created.id}_stream.conf`),

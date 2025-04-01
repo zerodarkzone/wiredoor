@@ -1,6 +1,7 @@
 import { faker } from '@faker-js/faker';
 import { CreateNodeType } from '../../../validators/node-validators';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const makeNodeData = (params?: any): CreateNodeType => {
   return {
     name: params?.name || faker.internet.domainWord(),

@@ -10,6 +10,7 @@ import { makePATData } from './stubs/pat.stub';
 import { PatQueryFilter } from '../../repositories/filters/pat-query-filter';
 import { PersonalAccessToken } from '../../database/models/personal-access-token';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 let app;
 let dataSource: DataSource;
 

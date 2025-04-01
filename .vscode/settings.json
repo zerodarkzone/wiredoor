@@ -1,3 +1,8 @@
 {
-  "cmake.ignoreCMakeListsMissing": true
+  "cmake.ignoreCMakeListsMissing": true,
+  "jest.jestCommandLine": "npm test --",
+  "jest.rootPath": "api",
+  "jest.enableCodeLens": true,
+  "jest.showInlineError": true,
+  "jest.runAllTestsFirst": false
 }
