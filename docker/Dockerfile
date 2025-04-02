@@ -8,10 +8,10 @@ RUN apk add --update \
   dpkg iptables gawk tzdata \
   wireguard-tools tcpdump nginx nginx-mod-stream supervisor openssl certbot
 
-COPY resources/crontabs /etc/crontabs/
-COPY resources/nginx /etc/nginx/
-COPY resources/openssl /etc/openssl/
-COPY resources/supervisor /etc/supervisor/
+COPY docker/resources/crontabs /etc/crontabs/
+COPY docker/resources/nginx /etc/nginx/
+COPY docker/resources/openssl /etc/openssl/
+COPY docker/resources/supervisor /etc/supervisor/
 
 RUN mkdir -p /var/log/supervisor \
   && mkdir -p /var/www/letsencrypt \
@@ -33,21 +33,17 @@ FROM base AS development
 
 COPY --chown=node:node package*.json .
 
-COPY --chown=node:node api/package*.json api/
-
-COPY --chown=node:node ui/package*.json ui/
-
-RUN npm i --recursive
+RUN npm i
 
 COPY --chown=node:node . .
 
 FROM base AS build
 
-COPY --chown=node:node api/package*.json ./
+COPY --chown=node:node package*.json ./
 
 COPY --chown=node:node --from=development /app/node_modules ./node_modules
 
-COPY --chown=node:node api/. .
+COPY --chown=node:node . .
 
 RUN npm run build
 
@@ -57,11 +53,11 @@ FROM node:20-alpine3.21 AS uibuild
 
 WORKDIR /app
 
-COPY --chown=node:node ui/package*.json ./
+COPY --chown=node:node frontend/package*.json ./
 
 RUN npm i
 
-COPY --chown=node:node ui/. .
+COPY --chown=node:node frontend/. .
 
 RUN npm run build
 

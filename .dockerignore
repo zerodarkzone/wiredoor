@@ -2,5 +2,6 @@
 .gitignore
 *.md
 .github
+docs
 node_modules
 **/node_modules

@@ -30,7 +30,7 @@ jobs:
         run: echo "${{ secrets.WIREDOOR_GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
       - name: Build Dev Image
-        run: docker build -t ghcr.io/${{ github.repository_owner }}/wiredoor:build-${{ github.sha }} --target development -f Dockerfile .
+        run: docker build -t ghcr.io/${{ github.repository_owner }}/wiredoor:build-${{ github.sha }} --target development -f docker/Dockerfile .
 
       - name: Push image
         run: docker push ghcr.io/${{ github.repository_owner }}/wiredoor:build-${{ github.sha }}
@@ -46,7 +46,8 @@ jobs:
 
       - name: Run Lint
         run: |
-          docker run --rm -w /app/api ghcr.io/${{ github.repository_owner }}/wiredoor:build-${{ github.sha }} npm run lint
+          docker run --rm ghcr.io/${{ github.repository_owner }}/wiredoor:build-${{ github.sha }} npm run lint
+          docker run --rm -w /app/frontend ghcr.io/${{ github.repository_owner }}/wiredoor:build-${{ github.sha }} npm run lint
 
   test:
     name: Run Tests in Dev Image
@@ -59,7 +60,7 @@ jobs:
 
       - name: Run Tests
         run: |
-          docker run --rm -w /app/api ghcr.io/${{ github.repository_owner }}/wiredoor:build-${{ github.sha }} npm run test
+          docker run --rm ghcr.io/${{ github.repository_owner }}/wiredoor:build-${{ github.sha }} npm run test
 
   build-prod:
     name: Build Prod Image
@@ -78,7 +79,7 @@ jobs:
 
       - name: Build Prod Image
         run: |
-          docker build -t ghcr.io/${{ github.repository_owner }}/wiredoor:build-${{ github.sha }} -f Dockerfile --target=production .
+          docker build -t ghcr.io/${{ github.repository_owner }}/wiredoor:build-${{ github.sha }} -f docker/Dockerfile --target=production .
 
       - name: Push image
         run: docker push ghcr.io/${{ github.repository_owner }}/wiredoor:build-${{ github.sha }}
