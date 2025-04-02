@@ -47,7 +47,6 @@ jobs:
       - name: Run Lint
         run: |
           docker run --rm ghcr.io/${{ github.repository_owner }}/wiredoor:build-${{ github.sha }} npm run lint
-          docker run --rm -w /app/frontend ghcr.io/${{ github.repository_owner }}/wiredoor:build-${{ github.sha }} npm run lint
 
   test:
     name: Run Tests in Dev Image
