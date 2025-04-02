@@ -7,6 +7,8 @@ import { useRouter } from 'vue-router';
 const router = useRouter();
 const { openNodeForm } = useNodeForm()
 
+const wiredoorMainPage = 'https://www.wiredoor.net'
+
 </script>
 
 <template>
@@ -44,9 +46,9 @@ const { openNodeForm } = useNodeForm()
             <p class="text-gray-600 dark:text-gray-300 mb-4">
               Use <code class="bg-gray-100 dark:bg-gray-700 px-1 rounded">wiredoor-cli</code> to automate service exposure from any system.
             </p>
-            <RouterLink to="/docs/cli" class="text-blue-600 dark:text-blue-400 hover:underline">
+            <a :href="`${wiredoorMainPage}/docs/cli`" target="_blank" class="text-blue-600 dark:text-blue-400 hover:underline">
               View CLI Docs →
-            </RouterLink>
+            </a>
           </div>
 
           <!-- Gateway -->
@@ -57,14 +59,14 @@ const { openNodeForm } = useNodeForm()
             </p>
             <ul class="list-disc list-inside text-sm text-gray-700 dark:text-gray-300 mb-2">
               <li>
-                <RouterLink to="/docs/docker-gateway" class="text-blue-600 dark:text-blue-400 hover:underline">
+                <a :href="`${wiredoorMainPage}/docs/docker-gateway`" class="text-blue-600 dark:text-blue-400 hover:underline">
                   Docker Gateway
-                </RouterLink>
+                </a>
               </li>
               <li>
-                <RouterLink to="/docs/kubernetes-gateway" class="text-blue-600 dark:text-blue-400 hover:underline">
+                <a :href="`${wiredoorMainPage}/docs/kubernetes-gateway`" class="text-blue-600 dark:text-blue-400 hover:underline">
                   Kubernetes Gateway
-                </RouterLink>
+                </a>
               </li>
             </ul>
           </div>
@@ -72,9 +74,9 @@ const { openNodeForm } = useNodeForm()
 
         <div class="text-center mt-8 text-sm text-gray-500 dark:text-gray-400">
           Need help? Visit the
-          <RouterLink to="https://www.wiredoor.net/docs" class="text-blue-600 dark:text-blue-400 hover:underline">
+          <a :href="`${wiredoorMainPage}/docs`" target="_blank" class="text-blue-600 dark:text-blue-400 hover:underline">
             documentation
-          </RouterLink>
+          </a>
           or check our
           <a href="https://github.com/wiredoor/wiredoor" target="_blank" class="text-blue-600 dark:text-blue-400 hover:underline">
             GitHub
