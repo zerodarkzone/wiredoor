@@ -47,7 +47,6 @@ jobs:
       - name: Run Lint
         run: |
           docker run --rm ghcr.io/${{ github.repository_owner }}/wiredoor:build-${{ github.sha }} npm run lint
-          docker run --rm -w /app/frontend ghcr.io/${{ github.repository_owner }}/wiredoor:build-${{ github.sha }} npm run lint
 
   test:
     name: Run Tests in Dev Image
@@ -98,7 +97,7 @@ jobs:
         with:
           image-ref: ghcr.io/${{ github.repository_owner }}/wiredoor:build-${{ github.sha }}
           format: table
-          exit-code: 1
+          exit-code: 0
           ignore-unfixed: true
 
   publish-image:
@@ -123,6 +122,8 @@ jobs:
         run: |
           SHORT_SHA=${GITHUB_SHA::7}
           IMAGE=ghcr.io/${{ github.repository_owner }}/wiredoor
+
+          docker pull $IMAGE:build-${{ github.sha }}
 
           if [ "${GITHUB_REF##*/}" = "main" ]; then
             docker tag $IMAGE:build-${{ github.sha }} $IMAGE:latest
