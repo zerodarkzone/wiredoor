@@ -123,6 +123,8 @@ jobs:
           SHORT_SHA=${GITHUB_SHA::7}
           IMAGE=ghcr.io/${{ github.repository_owner }}/wiredoor
 
+          docker pull $IMAGE:build-${{ github.sha }}
+
           if [ "${GITHUB_REF##*/}" = "main" ]; then
             docker tag $IMAGE:build-${{ github.sha }} $IMAGE:latest
             docker tag $IMAGE:build-${{ github.sha }} $IMAGE:$SHORT_SHA
