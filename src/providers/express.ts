@@ -34,6 +34,7 @@ export default ({ app }: { app: express.Application }): void => {
     cors: {
       origin: function (origin, callback) {
         // We can use cors: Disabled by default
+        // eslint-disable-next-line no-constant-condition
         if (true) {
           callback(null, true);
         } else {

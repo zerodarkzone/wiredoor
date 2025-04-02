@@ -69,7 +69,9 @@ export default class WGCli {
   static async quickDown(cfg = 'wg0'): Promise<void> {
     try {
       await CLI.exec(`wg-quick down ${cfg}`);
-    } catch {}
+    } catch {
+      // fail to down interface
+    }
   }
 
   static async dumpPeerRuntimeInfo(

@@ -19,6 +19,7 @@ export class SetupSSE implements ExpressMiddlewareInterface {
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Connection', 'keep-alive');
 
+    // eslint-disable-next-line no-prototype-builtins
     if (res.hasOwnProperty('flushHeaders')) {
       res.flushHeaders();
     }
@@ -31,6 +32,7 @@ export class SetupSSE implements ExpressMiddlewareInterface {
 
         const payload = `data: ${JSON.stringify(data)}\n\n`;
 
+        // eslint-disable-next-line no-prototype-builtins
         if (res.hasOwnProperty('flush')) {
           res.flush();
         }

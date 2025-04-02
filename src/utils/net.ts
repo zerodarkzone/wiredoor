@@ -31,6 +31,7 @@ export default class Net {
   }
 
   static async isReachable(ip: string): Promise<boolean> {
+    // eslint-disable-next-line no-async-promise-executor
     return new Promise(async (resolve) => {
       const pingCmd = `ping -q -c 1 -4 -s 8 -W 3 ${ip}`;
       try {
