@@ -76,8 +76,6 @@ export class NodesService {
       name: 'default',
     });
 
-    console.log(pat);
-
     return {
       ...node,
       personalAccessTokens: [pat],

@@ -116,7 +116,7 @@ export default class NodeController extends BaseController {
     }),
   )
   async createNode(@Body() params: CreateNodeType): Promise<Node> {
-    return this.nodesService.createNode(params);
+    return this.nodesService.createNodeWithPAT(params);
   }
 
   @Get('/:id')
