@@ -26,17 +26,14 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
+      - name: Log in to GHCR
+        run: echo "${{ secrets.WIREDOOR_GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
       - name: Build Dev Image
-        run: docker build -t wiredoor:dev --target development -f Dockerfile .
+        run: docker build -t ghcr.io/${{ github.repository_owner }}/dev-image:${{ github.sha }} --target development -f Dockerfile .
 
-      - name: Save image to tarball
-        run: docker save wiredoor:dev > wiredoor-dev.tar
-
-      - name: Upload image as artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: wiredoor-dev
-          path: wiredoor-dev.tar
+      - name: Push image
+        run: docker push ghcr.io/${{ github.repository_owner }}/wiredoor-dev:${{ github.sha }}
 
   lint:
     name: Lint Dev Image
@@ -44,18 +41,12 @@ jobs:
     needs: build-dev
 
     steps:
-      - name: Download image
-        uses: actions/download-artifact@v3
-        with:
-          name: wiredoor-dev
-          path: .
-
-      - name: Load image
-        run: docker load < wiredoor-dev.tar
+      - name: Log in to GHCR
+        run: echo "${{ secrets.WIREDOOR_GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
       - name: Run Lint
         run: |
-          docker run --rm -w /app/api wiredoor:dev npm run lint
+          docker run --rm -w /app/api ghcr.io/${{ github.repository_owner }}/wiredoor-dev:${{ github.sha }} npm run lint
 
   test:
     name: Run Tests in Dev Image
@@ -63,18 +54,12 @@ jobs:
     needs: build-dev
 
     steps:
-      - name: Download image
-        uses: actions/download-artifact@v3
-        with:
-          name: wiredoor-dev
-          path: .
-
-      - name: Load image
-        run: docker load < wiredoor-dev.tar
+      - name: Log in to GHCR
+        run: echo "${{ secrets.WIREDOOR_GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
       - name: Run Tests
         run: |
-          docker run --rm -w /app/api wiredoor:dev npm run test
+          docker run --rm -w /app/api ghcr.io/${{ github.repository_owner }}/wiredoor-dev:${{ github.sha }} npm run test
 
   build-prod:
     name: Build Prod Image
