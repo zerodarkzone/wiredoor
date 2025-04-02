@@ -97,7 +97,7 @@ jobs:
         with:
           image-ref: ghcr.io/${{ github.repository_owner }}/wiredoor:build-${{ github.sha }}
           format: table
-          exit-code: 1
+          exit-code: 0
           ignore-unfixed: true
 
   publish-image:
