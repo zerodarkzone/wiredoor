@@ -1,7 +1,7 @@
 import { Inject, Service } from 'typedi';
 import { Response } from 'express';
 import { NodeRepository } from '../repositories/node-repository';
-import { Node, NodeInfo } from '../database/models/node';
+import { Node, NodeInfo, NodeWithToken } from '../database/models/node';
 import {
   CreateNodeType,
   NodeFilterQueryParams,
@@ -69,16 +69,18 @@ export class NodesService {
     return node;
   }
 
-  public async createNodeWithPAT(params: CreateNodeType): Promise<Node> {
+  public async createNodeWithPAT(
+    params: CreateNodeType,
+  ): Promise<NodeWithToken> {
     const node = await this.createNode(params);
 
-    const pat = await this.patService.createNodePAT(+node.id, {
+    const pat = await this.patService.createNodePAT(node.id, {
       name: 'default',
     });
 
     return {
       ...node,
-      personalAccessTokens: [pat],
+      token: pat.token,
     };
   }
 

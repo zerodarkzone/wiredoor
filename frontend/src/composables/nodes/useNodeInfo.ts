@@ -5,7 +5,6 @@ const isOpen = ref<boolean>(false)
 const node = ref<Node | undefined>()
 
 export function useNodeInfo() {
-
   const closeDialog = (): void => {
     isOpen.value = false
     node.value = undefined

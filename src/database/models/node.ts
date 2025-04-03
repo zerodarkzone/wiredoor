@@ -20,6 +20,10 @@ export interface NodeInfo
   status?: 'online' | 'offline' | 'idle';
 }
 
+export interface NodeWithToken extends NodeInfo {
+  token: string;
+}
+
 @Entity('nodes')
 export class Node {
   @PrimaryGeneratedColumn()
@@ -82,9 +86,13 @@ export class Node {
   })
   tcpServices: TcpService[];
 
-  @OneToMany(() => PersonalAccessToken, (service) => service.node, {
-    onDelete: 'CASCADE',
-  })
+  @OneToMany(
+    () => PersonalAccessToken,
+    (personalAccessToken) => personalAccessToken.node,
+    {
+      onDelete: 'CASCADE',
+    },
+  )
   personalAccessTokens: PersonalAccessToken[];
 
   @CreateDateColumn()

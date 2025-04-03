@@ -16,6 +16,7 @@ export interface Node {
   transferRx?: number
   transferTx?: number
   status?: string
+  token?: string
   personalAccessTokens?: PAT[]
   created_at: string
   updated_at: string
