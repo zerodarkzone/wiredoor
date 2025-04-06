@@ -28,7 +28,7 @@ import {
   AuthTokenHandler,
 } from '../middlewares/auth-token-handler';
 import BaseController from './base-controller';
-import { Node } from '../database/models/node';
+import { NodeInfo } from '../database/models/node';
 import { WGConfigObject } from '../services/wireguard/wireguard-service';
 import { HttpService } from '../database/models/http-service';
 import { PagedData } from '../repositories/filters/repository-query-filter';
@@ -49,8 +49,11 @@ export default class CLiController extends BaseController {
   @Get('/node')
   async getCliNode(
     @CurrentUser({ required: true }) cli: AuthenticatedUser,
-  ): Promise<Node> {
-    return this.nodesService.getNode(+cli.nodeId);
+  ): Promise<NodeInfo> {
+    return this.nodesService.getNodeInfo(+cli.nodeId, [
+      'httpServices',
+      'tcpServices',
+    ]);
   }
 
   @Get('/config')

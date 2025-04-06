@@ -82,8 +82,11 @@ export class NodesService {
     };
   }
 
-  public async getNode(id: number): Promise<Node> {
-    const node = await this.nodeRepository.findOne({ where: { id } });
+  public async getNode(id: number, relations: string[] = []): Promise<Node> {
+    const node = await this.nodeRepository.findOne({
+      where: { id },
+      relations,
+    });
 
     if (!node) {
       throw new NotFoundError('Node not found!');
@@ -92,8 +95,11 @@ export class NodesService {
     return node;
   }
 
-  public async getNodeInfo(id: number): Promise<NodeInfo> {
-    const node = await this.getNode(id);
+  public async getNodeInfo(
+    id: number,
+    relations: string[] = [],
+  ): Promise<NodeInfo> {
+    const node = await this.getNode(id, relations);
 
     return this.wireguardService.getNodeRuntimeInfo(node);
   }
