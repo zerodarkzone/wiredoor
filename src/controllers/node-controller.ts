@@ -32,7 +32,7 @@ import { PatService } from '../services/pat-service';
 import { AuthTokenHandler } from '../middlewares/auth-token-handler';
 import { ResponseSSE, SetupSSE } from '../middlewares/setup-sse';
 import BaseController from './base-controller';
-import { Node, NodeInfo } from '../database/models/node';
+import { Node, NodeInfo, NodeWithToken } from '../database/models/node';
 import { PagedData } from '../repositories/filters/repository-query-filter';
 import {
   PersonalAccessToken,
@@ -115,7 +115,7 @@ export default class NodeController extends BaseController {
       body: createNodeValidator,
     }),
   )
-  async createNode(@Body() params: CreateNodeType): Promise<Node> {
+  async createNode(@Body() params: CreateNodeType): Promise<NodeWithToken> {
     return this.nodesService.createNodeWithPAT(params);
   }
 

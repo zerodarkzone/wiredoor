@@ -40,12 +40,11 @@ export function errorHandlerMiddleware(
 
   if (err instanceof HttpError) {
     res.status(err.httpCode);
-    if (err.httpCode >= 500) {
-      console.error(err);
-    }
   } else {
     res.status(400);
   }
+
+  console.error(err);
 
   return res.json({
     status: 'error',

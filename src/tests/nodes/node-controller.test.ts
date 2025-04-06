@@ -51,6 +51,7 @@ describe('Nodes Management API', () => {
     });
     it('should create node', async () => {
       const token = mockAuthenticatedToken();
+
       const res = await request
         .post('/api/nodes')
         .set('Authorization', `Bearer ${token}`)
@@ -58,6 +59,7 @@ describe('Nodes Management API', () => {
 
       expect(res.status).toBe(200);
       expect(res.body.name).toEqual('client');
+      expect(res.body.token).toEqual(expect.any(String));
     });
   });
   describe('GET /api/nodes/:id', () => {

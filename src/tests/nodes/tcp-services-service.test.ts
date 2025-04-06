@@ -251,8 +251,6 @@ describe('TCP Services Service', () => {
       expect(result.id).toBeDefined();
       expect(result.domain).toEqual(serviceData.domain);
 
-      console.log(mockSaveToFile.mock.calls);
-
       expect(mockSaveToFile.mock.calls).toEqual([
         [
           `/etc/nginx/conf.d/${serviceData.domain}.conf`,

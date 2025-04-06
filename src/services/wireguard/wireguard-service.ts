@@ -68,13 +68,17 @@ class WireguardService {
   ): Promise<NodeClientParams> {
     const keyPair = await this.genKeyPair();
     const preSharedKey = await WGCli.genPreSharedKey();
-    const address = await this.getAvailableIp(wgInterface);
+    let address = params.address;
+
+    if (!address) {
+      address = await this.getAvailableIp(wgInterface);
+    }
 
     return {
+      ...params,
       address,
       preSharedKey,
       wgInterface,
-      ...params,
       ...keyPair,
     };
   }

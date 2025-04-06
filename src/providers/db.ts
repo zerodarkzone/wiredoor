@@ -19,6 +19,7 @@ export default async (): Promise<DataSource> => {
       migrationsTableName: 'typeorm_migrations',
       // migrationsRun: true,
       // logging: ['query', 'error'],
+      // logger: 'advanced-console',
     } as MysqlConnectionOptions | SqliteConnectionOptions);
 
     await dataSource.initialize();

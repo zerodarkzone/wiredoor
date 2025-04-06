@@ -33,15 +33,10 @@ export class PersonalAccessToken {
   })
   revoked: boolean;
 
-  @Column({
-    nullable: true,
-  })
-  identitfier: string;
-
   @Column()
   nodeId: number;
 
-  @ManyToOne(() => Node)
+  @ManyToOne(() => Node, { createForeignKeyConstraints: false })
   @JoinColumn({ name: 'nodeId' })
   node: Node;
 

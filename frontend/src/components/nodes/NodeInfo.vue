@@ -17,10 +17,10 @@ const { downloadConfig } = useNodeActions()
 const copyIcon = ref('copy')
 
 const copyToken = async () => {
-  if (node.value?.personalAccessTokens && node.value?.personalAccessTokens[0].token) {
+  if (node.value?.token) {
     copyIcon.value = 'copyCheck'
     try {
-      await navigator.clipboard.writeText(node.value?.personalAccessTokens[0].token)
+      await navigator.clipboard.writeText(node.value?.token)
       setTimeout(() => (copyIcon.value = 'copy'), 2000)
     } catch (err) {
       copyIcon.value = 'copy'
