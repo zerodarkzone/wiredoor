@@ -1,10 +1,12 @@
 import { Inject, Service } from 'typedi';
-import { celebrate } from 'celebrate';
+import { celebrate, Joi } from 'celebrate';
 import {
   Body,
   CurrentUser,
   Get,
   JsonController,
+  Param,
+  Patch,
   Post,
   QueryParams,
   UseBefore,
@@ -83,6 +85,36 @@ export default class CLiController extends BaseController {
     return this.httpServicesService.getNodeHttpServices(+cli.nodeId, params);
   }
 
+  @Patch('/services/http/:id/disable')
+  @UseBefore(
+    celebrate({
+      params: Joi.object({
+        id: Joi.number().required(),
+      }),
+    }),
+  )
+  async disableHttpService(
+    @CurrentUser({ required: true }) cli: AuthenticatedUser,
+    @Param('id') id: number,
+  ): Promise<HttpService> {
+    return this.httpServicesService.disableNodeService(id, cli.nodeId);
+  }
+
+  @Patch('/services/http/:id/enable')
+  @UseBefore(
+    celebrate({
+      params: Joi.object({
+        id: Joi.number().required(),
+      }),
+    }),
+  )
+  async enableHttpService(
+    @CurrentUser({ required: true }) cli: AuthenticatedUser,
+    @Param('id') id: number,
+  ): Promise<HttpService> {
+    return this.httpServicesService.enableNodeService(id, cli.nodeId);
+  }
+
   @Get('/services/tcp')
   @UseBefore(
     celebrate({
@@ -94,6 +126,36 @@ export default class CLiController extends BaseController {
     @QueryParams() params: TcpServiceFilterQueryParams,
   ): Promise<TcpService | TcpService[] | PagedData<TcpService>> {
     return this.tcpServicesService.getNodeTcpServices(+cli.nodeId, params);
+  }
+
+  @Patch('/services/tcp/:id/disable')
+  @UseBefore(
+    celebrate({
+      params: Joi.object({
+        id: Joi.number().required(),
+      }),
+    }),
+  )
+  async disableTcpService(
+    @CurrentUser({ required: true }) cli: AuthenticatedUser,
+    @Param('id') id: number,
+  ): Promise<TcpService> {
+    return this.tcpServicesService.disableNodeService(id, cli.nodeId);
+  }
+
+  @Patch('/services/tcp/:id/enable')
+  @UseBefore(
+    celebrate({
+      params: Joi.object({
+        id: Joi.number().required(),
+      }),
+    }),
+  )
+  async enableTcpService(
+    @CurrentUser({ required: true }) cli: AuthenticatedUser,
+    @Param('id') id: number,
+  ): Promise<TcpService> {
+    return this.tcpServicesService.enableNodeService(id, cli.nodeId);
   }
 
   @Post('/expose/http')

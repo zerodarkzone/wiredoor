@@ -238,7 +238,7 @@ export default class NodeServiceController extends BaseController {
     @Param('nodeId') nodeId: string,
     @Param('serviceId') serviceId: string,
   ): Promise<TcpService> {
-    return this.tcpServicesService.enableTcpService(+serviceId);
+    return this.tcpServicesService.enableService(+serviceId);
   }
 
   @Patch('/:nodeId/tcp/:serviceId/disable')
@@ -254,7 +254,7 @@ export default class NodeServiceController extends BaseController {
     @Param('nodeId') nodeId: string,
     @Param('serviceId') serviceId: string,
   ): Promise<TcpService> {
-    return this.tcpServicesService.disableTcpService(+serviceId);
+    return this.tcpServicesService.disableService(+serviceId);
   }
 
   @Delete('/:nodeId/tcp/:serviceId')

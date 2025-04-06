@@ -59,6 +59,23 @@ export class TcpServicesService {
     });
   }
 
+  public async getNodeTcpService(
+    id: number,
+    nodeId: number,
+    relations: string[] = [],
+  ): Promise<TcpService> {
+    const service = await this.tcpServiceRepository.findOne({
+      where: { id, nodeId },
+      relations,
+    });
+
+    if (!service) {
+      throw new NotFoundError('Service not found');
+    }
+
+    return service;
+  }
+
   public async createTcpService(
     nodeId: number,
     params: TcpServiceType,
@@ -111,12 +128,30 @@ export class TcpServicesService {
     return service;
   }
 
-  enableTcpService(id: number): Promise<TcpService> {
+  public async updateNodeTcpService(
+    id: number,
+    nodeId: number,
+    params: Partial<TcpServiceType>,
+  ): Promise<TcpService> {
+    await this.getNodeTcpService(id, nodeId);
+
+    return this.updateTcpService(id, params);
+  }
+
+  enableService(id: number): Promise<TcpService> {
     return this.updateTcpService(id, { enabled: true });
   }
 
-  disableTcpService(id: number): Promise<TcpService> {
+  enableNodeService(id: number, nodeId: number): Promise<TcpService> {
+    return this.updateNodeTcpService(id, nodeId, { enabled: true });
+  }
+
+  disableService(id: number): Promise<TcpService> {
     return this.updateTcpService(id, { enabled: false });
+  }
+
+  disableNodeService(id: number, nodeId: number): Promise<TcpService> {
+    return this.updateNodeTcpService(id, nodeId, { enabled: false });
   }
 
   public async deleteTcpService(id: number): Promise<string> {

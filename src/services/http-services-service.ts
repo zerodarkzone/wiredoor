@@ -3,7 +3,7 @@ import { HttpServiceRepository } from '../repositories/http-service-repository';
 import { HttpService } from '../database/models/http-service';
 import axios, { AxiosRequestConfig } from 'axios';
 import https from 'https';
-import { BadRequestError } from 'routing-controllers';
+import { BadRequestError, NotFoundError } from 'routing-controllers';
 import {
   HttpServiceFilterQueryParams,
   HttpServiceType,
@@ -54,6 +54,23 @@ export class HttpServicesService {
     });
   }
 
+  public async getNodeHttpService(
+    id: number,
+    nodeId: number,
+    relations: string[] = [],
+  ): Promise<HttpService> {
+    const service = await this.httpServiceRepository.findOne({
+      where: { id, nodeId },
+      relations,
+    });
+
+    if (!service) {
+      throw new NotFoundError('Service not found');
+    }
+
+    return service;
+  }
+
   public async createHttpService(
     nodeId: number,
     params: HttpServiceType,
@@ -87,12 +104,30 @@ export class HttpServicesService {
     return httpService;
   }
 
+  public async updateNodeHttpService(
+    id: number,
+    nodeId: number,
+    params: Partial<HttpServiceType>,
+  ): Promise<HttpService> {
+    await this.getNodeHttpService(id, nodeId);
+
+    return this.updateHttpService(id, params);
+  }
+
   enableService(id: number): Promise<HttpService> {
     return this.updateHttpService(id, { enabled: true });
   }
 
+  enableNodeService(id: number, nodeId: number): Promise<HttpService> {
+    return this.updateNodeHttpService(id, nodeId, { enabled: true });
+  }
+
   disableService(id: number): Promise<HttpService> {
     return this.updateHttpService(id, { enabled: false });
+  }
+
+  disableNodeService(id: number, nodeId: number): Promise<HttpService> {
+    return this.updateNodeHttpService(id, nodeId, { enabled: false });
   }
 
   public async deleteHttpService(id: number): Promise<string> {
