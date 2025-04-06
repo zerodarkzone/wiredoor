@@ -62,4 +62,8 @@ export const tcpServiceValidator: ObjectSchema<TcpServiceType> = Joi.object({
     .items(Joi.string().ip({ cidr: 'optional' }).optional())
     .allow(null)
     .optional(),
+  blockedIps: Joi.array()
+    .items(Joi.string().ip({ cidr: 'optional' }).optional())
+    .allow(null)
+    .optional(),
 });
