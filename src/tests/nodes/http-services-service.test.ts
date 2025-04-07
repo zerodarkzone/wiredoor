@@ -312,6 +312,54 @@ describe('HTTP Services Service', () => {
     });
   });
 
+  describe('Disable HTTP Service', () => {
+    it('should disable HTTP Service and remove server configuration file', async () => {
+      const serviceData = makeHttpServiceData();
+
+      const created = await service.createHttpService(node.id, serviceData);
+
+      jest.clearAllMocks();
+
+      const result = await service.disableService(created.id);
+
+      expect(result.enabled).toEqual(false);
+
+      expect(mockRemoveFile).toHaveBeenCalledWith(
+        expect.stringContaining('__main.conf'),
+      );
+
+      expect(mockCLIExec.mock.calls).toEqual([['nginx -s reload']]);
+    });
+  });
+
+  describe('Enable HTTP Service', () => {
+    it('should enable HTTP Service and create server configuration file', async () => {
+      const serviceData = makeHttpServiceData();
+
+      const created = await service.createHttpService(node.id, serviceData);
+
+      await service.disableService(created.id);
+
+      jest.clearAllMocks();
+
+      const result = await service.enableService(created.id);
+
+      expect(result.enabled).toEqual(true);
+
+      expect(mockSaveToFile).toHaveBeenCalledWith(
+        `/etc/nginx/locations/${serviceData.domain}/__main.conf`,
+        expect.stringContaining(
+          `${serviceData.backendProto}://$node${node.id}service${result.id}:${serviceData.backendPort}`,
+        ),
+      );
+
+      expect(mockCLIExec.mock.calls).toEqual([
+        ['nginx -t'],
+        ['nginx -s reload'],
+      ]);
+    });
+  });
+
   describe('Delete HTTP Service', () => {
     it('should delete HTTP Service and server config file', async () => {
       const serviceData = makeHttpServiceData();

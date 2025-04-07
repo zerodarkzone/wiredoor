@@ -368,6 +368,54 @@ describe('TCP Services Service', () => {
     });
   });
 
+  describe('Disable TCP Service', () => {
+    it('should disable TCP Service and remove server configuration file', async () => {
+      const serviceData = makeTcpServiceData();
+
+      const created = await service.createTcpService(node.id, serviceData);
+
+      jest.clearAllMocks();
+
+      const result = await service.disableService(created.id);
+
+      expect(result.enabled).toEqual(false);
+
+      expect(mockRemoveFile).toHaveBeenCalledWith(
+        expect.stringContaining(`/n${node.id}s${created.id}_stream.conf`),
+      );
+
+      expect(mockCLIExec).toHaveBeenCalledWith('nginx -s reload');
+    });
+  });
+
+  describe('Enable TCP Service', () => {
+    it('should enable TCP Service and create server configuration file', async () => {
+      const serviceData = makeTcpServiceData();
+
+      const created = await service.createTcpService(node.id, serviceData);
+
+      await service.disableService(created.id);
+
+      jest.clearAllMocks();
+
+      const result = await service.enableService(created.id);
+
+      expect(result.enabled).toEqual(true);
+
+      expect(mockSaveToFile).toHaveBeenCalledWith(
+        `/etc/nginx/stream.d/n${node.id}s${result.id}_stream.conf`,
+        expect.stringContaining(
+          `server ${node.address}:${created.backendPort}`,
+        ),
+      );
+
+      expect(mockCLIExec.mock.calls).toEqual([
+        ['nginx -t'],
+        ['nginx -s reload'],
+      ]);
+    });
+  });
+
   describe('Delete TCP Service', () => {
     it('should delete TCP Service and server config file', async () => {
       const serviceData = makeTcpServiceData();

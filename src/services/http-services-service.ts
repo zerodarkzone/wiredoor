@@ -99,7 +99,7 @@ export class HttpServicesService {
 
     const httpService = await this.getHttpService(id, ['node']);
 
-    await this.buildServerConfig(httpService);
+    await this.buildServerConfig(httpService, true);
 
     return httpService;
   }

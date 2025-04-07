@@ -110,7 +110,10 @@ const editService = (service: TcpService) => {
                 >
                   <SvgIcon name="expose" class="w-6 h-6 text-white" />
                 </div>
-                <div
+                <div v-if="row.enabled"
+                  class="absolute top-0 right-3 w-3 h-3 bg-green-500 border-2 border-white dark:border-gray-900 rounded-full"
+                ></div>
+                <div v-else
                   class="absolute top-0 right-3 w-3 h-3 bg-red-500 border-2 border-white dark:border-gray-900 rounded-full"
                 ></div>
               </div>

@@ -68,6 +68,9 @@ export class NginxManager {
     restart = true,
   ): Promise<boolean> {
     if (!service.enabled) {
+      if (restart) {
+        await this.reloadServer();
+      }
       return;
     }
 
@@ -120,6 +123,9 @@ export class NginxManager {
     restart = true,
   ): Promise<boolean> {
     if (!service.enabled) {
+      if (restart) {
+        await this.reloadServer();
+      }
       return;
     }
 
