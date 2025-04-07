@@ -88,4 +88,8 @@ export class PatService {
 
     return 'Deleted!';
   }
+
+  async deleteAllTokens(nodeId: number): Promise<void> {
+    await this.personalAccessTokenRepository.delete({ nodeId });
+  }
 }

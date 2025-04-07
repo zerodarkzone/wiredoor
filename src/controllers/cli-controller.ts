@@ -30,7 +30,7 @@ import {
   AuthTokenHandler,
 } from '../middlewares/auth-token-handler';
 import BaseController from './base-controller';
-import { NodeInfo } from '../database/models/node';
+import { NodeInfo, NodeWithToken } from '../database/models/node';
 import { WGConfigObject } from '../services/wireguard/wireguard-service';
 import { HttpService } from '../database/models/http-service';
 import { PagedData } from '../repositories/filters/repository-query-filter';
@@ -182,5 +182,12 @@ export default class CLiController extends BaseController {
     @Body() params: TcpServiceType,
   ): Promise<TcpService> {
     return this.tcpServicesService.createTcpService(+cli.nodeId, params);
+  }
+
+  @Patch('/regenerate')
+  async regenerateNodeKeys(
+    @CurrentUser({ required: true }) cli: AuthenticatedUser,
+  ): Promise<NodeWithToken> {
+    return this.nodesService.regenerateNodeKeys(cli.nodeId);
   }
 }
