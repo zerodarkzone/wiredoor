@@ -105,6 +105,8 @@ export class NodesService {
       this.patService.deleteAllTokens(node.id),
     ]);
 
+    await this.wireguardService.loadConfig();
+
     const pat = await this.patService.createNodePAT(node.id, {
       name: 'default',
     });
