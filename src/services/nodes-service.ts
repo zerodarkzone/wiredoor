@@ -84,6 +84,37 @@ export class NodesService {
     };
   }
 
+  public async regenerateNodeKeys(id: number): Promise<NodeWithToken> {
+    const node = await this.nodeRepository.findOne({
+      where: { id },
+    });
+    const regeneratedData = await this.wireguardService.getClientParams(
+      {
+        name: node.name,
+        address: node.address,
+        allowInternet: node.allowInternet,
+        enabled: node.enabled,
+        gatewayNetwork: node.gatewayNetwork,
+        isGateway: node.isGateway,
+      },
+      node.wgInterface,
+    );
+
+    await Promise.all([
+      this.nodeRepository.update({ id: id }, regeneratedData),
+      this.patService.deleteAllTokens(node.id),
+    ]);
+
+    const pat = await this.patService.createNodePAT(node.id, {
+      name: 'default',
+    });
+
+    return {
+      ...node,
+      token: pat.token,
+    };
+  }
+
   public async getNode(id: number, relations: string[] = []): Promise<Node> {
     const node = await this.nodeRepository.findOne({
       where: { id },
