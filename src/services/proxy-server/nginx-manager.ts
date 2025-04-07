@@ -73,8 +73,6 @@ export class NginxManager {
 
     const serviceLocation: NginxLocationConf = new NginxLocationConf();
 
-    serviceLocation.setProxyPass('');
-
     let host = service.node.address;
 
     if (service.node.isGateway && service.backendHost) {
