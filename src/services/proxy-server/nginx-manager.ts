@@ -76,6 +76,19 @@ export class NginxManager {
 
     const serviceLocation: NginxLocationConf = new NginxLocationConf();
 
+    if (service.blockedIps.length) {
+      for (const ipOrSubnet of service.blockedIps) {
+        serviceLocation.setDeny(ipOrSubnet);
+      }
+    }
+
+    if (service.allowedIps.length) {
+      for (const ipOrSubnet of service.allowedIps) {
+        serviceLocation.setAllow(ipOrSubnet);
+      }
+      serviceLocation.setDeny('all');
+    }
+
     let host = service.node.address;
 
     if (service.node.isGateway && service.backendHost) {
@@ -149,6 +162,19 @@ export class NginxManager {
     ]);
 
     const serverConf = new NginxServerConf();
+
+    if (service.blockedIps.length) {
+      for (const ipOrSubnet of service.blockedIps) {
+        serverConf.setDeny(ipOrSubnet);
+      }
+    }
+
+    if (service.allowedIps.length) {
+      for (const ipOrSubnet of service.allowedIps) {
+        serverConf.setAllow(ipOrSubnet);
+      }
+      serverConf.setDeny('all');
+    }
 
     serverConf
       .setListen(`${service.port}${service.proto === 'udp' ? ' udp' : ''}`)

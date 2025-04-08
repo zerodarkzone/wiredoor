@@ -135,6 +135,16 @@ export class NginxConf {
     this.config = config || [];
   }
 
+  setDeny(ipAddressOrCIDR: string): this {
+    this.addBlock('deny', ipAddressOrCIDR);
+    return this;
+  }
+
+  setAllow(ipAddressOrCIDR: string): this {
+    this.addBlock('allow', ipAddressOrCIDR);
+    return this;
+  }
+
   public addUpstreams(upstreamName: string, endpoints: string[]): NginxConf {
     const upstreams = endpoints.map((s) => ['server', s]);
 
