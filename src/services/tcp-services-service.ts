@@ -188,7 +188,7 @@ export class TcpServicesService {
         body: [
           {
             field: 'backendPort',
-            message: `Unable to reach out port ${port} in node ${node.name}`,
+            message: `Unable to reach out port ${port} in node ${server}`,
           },
         ],
       });
