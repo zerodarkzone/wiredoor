@@ -103,7 +103,11 @@ export class TcpServicesService {
   ): Promise<TcpService> {
     const old = await this.getTcpService(id, ['node']);
 
-    await this.checkNodePort(id, params.backendPort, params.backendHost);
+    await this.checkNodePort(
+      old.nodeId,
+      params.backendPort,
+      params.backendHost,
+    );
 
     await NginxManager.removeTcpService(old, false);
 
