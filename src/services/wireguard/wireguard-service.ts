@@ -13,6 +13,13 @@ import {
 } from '../../validators/node-validators';
 import IP_CIDR from '../../utils/ip-cidr';
 import config from '../../config';
+import { getPing } from '../../providers/node-monitor';
+
+export interface ConnectionStatus {
+  status: 'online' | 'offline' | 'idle';
+  reachable?: boolean;
+  latency?: number | null;
+}
 
 export interface WGKeyPair {
   privateKey: string;
@@ -175,6 +182,8 @@ class WireguardService {
 
         const nodeInfo = info?.filter((i) => i.publicKey === n.publicKey)[0];
 
+        const status = this.getTunnelStatus(n, nodeInfo);
+
         return {
           ...nodeProperties,
           clientIp: nodeInfo ? nodeInfo.clientIp : null,
@@ -183,7 +192,7 @@ class WireguardService {
             : null,
           transferRx: nodeInfo ? nodeInfo.transferRx : null,
           transferTx: nodeInfo ? nodeInfo.transferTx : null,
-          status: this.getTunnelStatus(n, nodeInfo),
+          ...status,
         };
       });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -200,13 +209,15 @@ class WireguardService {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { publicKey, privateKey, preSharedKey, ...nodeProperties } = node;
 
+      const status = this.getTunnelStatus(node, info);
+
       return {
         ...nodeProperties,
         clientIp: info ? info.clientIp : null,
         transferRx: info ? info.transferRx : null,
         transferTx: info ? info.transferTx : null,
         latestHandshakeTimestamp: info ? info.latestHandshake * 1000 : null,
-        status: this.getTunnelStatus(node, info),
+        ...status,
       };
     } catch {
       return node;
@@ -216,15 +227,26 @@ class WireguardService {
   private getTunnelStatus(
     node: Node,
     runtimeInfo: RuntimeInfo,
-  ): 'online' | 'offline' | 'idle' {
-    if (!node.enabled || !runtimeInfo?.latestHandshake) return 'offline';
+  ): ConnectionStatus {
+    if (!node.enabled || !runtimeInfo?.latestHandshake)
+      return { status: 'offline' };
+
+    const pingStatus = getPing(node.address);
+
+    let status = 'idle';
 
     // if latest hadshake was less than 180 seconds ago
-    if (Date.now() / 1000 - runtimeInfo.latestHandshake < 180) {
-      return 'online';
-    } else {
-      return 'idle';
+    if (
+      Date.now() / 1000 - runtimeInfo.latestHandshake < 180 &&
+      pingStatus.reachable
+    ) {
+      status = 'online';
     }
+
+    return {
+      status: status as 'online' | 'idle',
+      ...pingStatus,
+    };
   }
 
   private getServerConfig(serverConfig: WgInterface, clients: Node[]): string {
