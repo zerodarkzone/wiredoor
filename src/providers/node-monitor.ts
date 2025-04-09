@@ -41,13 +41,14 @@ export function startPing(): void {
   }
 }
 
-// export function stopPing(): void {
-//   // clients--;
-//   if (clients <= 0 && interval) {
-//     clearInterval(interval);
-//     interval = null;
-//   }
-// }
+export function stopPing(): void {
+  // clients--;
+  // if (clients <= 0 && interval) {
+  if (interval) {
+    clearInterval(interval);
+    interval = null;
+  }
+}
 
 export function getPing(ip: string): PingResult | null {
   return cache.get(ip) ?? null;
