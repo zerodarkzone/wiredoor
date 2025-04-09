@@ -4,13 +4,36 @@ import { ValidationError } from '../utils/errors/validation-error';
 import { isCelebrateError } from 'celebrate';
 
 export function errorHandlerMiddleware(
-  err: unknown,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  err: any,
   req: Request,
   res: Response,
   next: NextFunction,
 ): void | Response<unknown, Record<string, unknown>> {
   if (res.headersSent) {
     return next(err);
+  }
+
+  if (err.name === 'QueryFailedError') {
+    const msg = err.message || '';
+
+    if (msg && msg.includes('UNIQUE constraint failed')) {
+      const match = msg.match(/UNIQUE constraint failed: (.+)/);
+      if (match) {
+        const fields = match[1]
+          .split(',')
+          .map((f) => f.split('.').pop()?.trim() || '');
+        return res.status(422).send({
+          message: 'Validation failed',
+          errors: fields.map((f) => ({
+            field: f,
+            message: `Record already exists with the same value in ${fields.join(', ')}`,
+          })),
+        });
+      }
+    }
+
+    console.error('DB Error', err);
   }
 
   if (isCelebrateError(err)) {
@@ -43,8 +66,6 @@ export function errorHandlerMiddleware(
   } else {
     res.status(400);
   }
-
-  console.error(err);
 
   return res.json({
     status: 'error',
