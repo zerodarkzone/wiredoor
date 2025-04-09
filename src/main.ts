@@ -7,6 +7,7 @@ import FileManager from './utils/file-manager';
 import { startPing, stopPing } from './providers/node-monitor';
 import Container from 'typedi';
 import { DataSource } from 'typeorm';
+import rateLimit from 'express-rate-limit';
 
 export async function loadApp(): Promise<express.Application> {
   const app = express();
@@ -23,6 +24,14 @@ export async function loadApp(): Promise<express.Application> {
       return res.status(200).end(`Welcome to ${config.app.name}!`);
     });
   }
+
+  app.use(
+    rateLimit({
+      windowMs: 60 * 1000, // 1min
+      max: 60,
+      message: 'Rate Limit exceeded',
+    }),
+  );
 
   app.get('*', (req, res, next) => {
     if (req.originalUrl.startsWith('/api')) {
