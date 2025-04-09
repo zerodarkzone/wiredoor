@@ -96,7 +96,7 @@ describe('Personal Access Token Service', () => {
       expect(result.id).toBeDefined();
       expect(result.token).toEqual(expect.any(String));
 
-      const buff = Buffer.from(result.token.split('.')[1], 'base64').toString(
+      const buff = Buffer.from(result.token.split('.')[0], 'base64').toString(
         'utf-8',
       );
       const claims = JSON.parse(buff);
