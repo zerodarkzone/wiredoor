@@ -4,6 +4,9 @@ import express from 'express';
 import providers from './providers';
 import config from './config';
 import FileManager from './utils/file-manager';
+import { startPing, stopPing } from './providers/node-monitor';
+import Container from 'typedi';
+import { DataSource } from 'typeorm';
 
 export async function loadApp(): Promise<express.Application> {
   const app = express();
@@ -32,9 +35,24 @@ export async function loadApp(): Promise<express.Application> {
     app.listen(config.app.port, () => {
       console.log(`${config.app.name} listening on port: ${config.app.port}`);
     });
+
+    startPing();
   }
 
   return app;
 }
+
+async function shutDownApp(): Promise<void> {
+  await Container.get<DataSource>('dataSource').destroy();
+  stopPing();
+}
+
+process.on('SIGINT', shutDownApp);
+process.on('SIGTERM', shutDownApp);
+
+process.on('uncaughtException', (err) => {
+  console.error('Unhandled Exception:', err);
+  shutDownApp();
+});
 
 loadApp();

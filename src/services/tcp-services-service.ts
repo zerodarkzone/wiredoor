@@ -7,7 +7,7 @@ import {
 } from '../validators/tcp-service-validator';
 import { TcpServiceQueryFilter } from '../repositories/filters/tcp-service-query-filter';
 import Net from '../utils/net';
-import { BadRequestError, NotFoundError } from 'routing-controllers';
+import { NotFoundError } from 'routing-controllers';
 import { NodeRepository } from '../repositories/node-repository';
 import IP_CIDR from '../utils/ip-cidr';
 import { DomainsService } from './domains-service';
@@ -103,16 +103,11 @@ export class TcpServicesService {
   ): Promise<TcpService> {
     const old = await this.getTcpService(id, ['node']);
 
-    const portAvailable = await Net.checkPort(
-      old.node.address,
+    await this.checkNodePort(
+      old.nodeId,
       params.backendPort,
+      params.backendHost,
     );
-
-    if (!portAvailable) {
-      throw new BadRequestError(
-        `Unable to reach out port ${params.backendPort} in node ${old.node.name}`,
-      );
-    }
 
     await NginxManager.removeTcpService(old, false);
 
@@ -188,7 +183,7 @@ export class TcpServicesService {
         body: [
           {
             field: 'backendPort',
-            message: `Unable to reach out port ${port} in node ${node.name}`,
+            message: `Unable to reach out port ${port} in node ${server}`,
           },
         ],
       });
