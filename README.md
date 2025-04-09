@@ -59,7 +59,7 @@ mkdir -p ~/{wiredoor-data,wiredoor-certbot} && chown -R 1000:1000 ~/{wiredoor-da
 ```yaml filename="docker-compose.yml" copy
 services:
   wiredoor:
-    image: infladoor/wiredoor:latest
+    image: ghcr.io/wiredoor/wiredoor:latest
     container_name: wiredoor
     cap_add:
       - NET_ADMIN
