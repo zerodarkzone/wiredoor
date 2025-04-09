@@ -5,6 +5,8 @@ import providers from './providers';
 import config from './config';
 import FileManager from './utils/file-manager';
 import { startPing, stopPing } from './providers/node-monitor';
+import Container from 'typedi';
+import { DataSource } from 'typeorm';
 
 export async function loadApp(): Promise<express.Application> {
   const app = express();
@@ -41,6 +43,7 @@ export async function loadApp(): Promise<express.Application> {
 }
 
 async function shutDownApp(): Promise<void> {
+  await Container.get<DataSource>('dataSource').destroy();
   stopPing();
 }
 

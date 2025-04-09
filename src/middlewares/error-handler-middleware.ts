@@ -69,6 +69,6 @@ export function errorHandlerMiddleware(
 
   return res.json({
     status: 'error',
-    message: 'Unknown error',
+    message: err.message || 'Unknown error',
   });
 }
