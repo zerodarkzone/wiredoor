@@ -45,6 +45,12 @@ export class AuthTokenHandler implements ExpressMiddlewareInterface {
     let data = undefined;
 
     try {
+      const jwtDef = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+
+      if (!token.startsWith(jwtDef)) {
+        token = `${jwtDef}.${token}`;
+      }
+
       data = jwt.verify(token, config.jwt.secret);
     } catch {
       throw new UnauthorizedError();

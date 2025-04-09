@@ -51,15 +51,17 @@ export class PatService {
       nodeId,
     });
 
-    const token = jwt.sign(
-      {
-        id: pat.id,
-        type: 'client',
-        // node: node.name,
-        // address: node.address,
-      },
-      config.jwt.secret,
-    );
+    const token = jwt
+      .sign(
+        {
+          id: pat.id,
+          type: 'client',
+        },
+        config.jwt.secret,
+      )
+      .split('.')
+      .splice(1, 2)
+      .join('.');
 
     return {
       ...pat,
