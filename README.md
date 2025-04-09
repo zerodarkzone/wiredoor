@@ -1,4 +1,24 @@
-# 🛡️ Wiredoor Server
+<p align="center"> <img src="https://www.wiredoor.net/images/wiredoor.svg" alt="Wiredoor logo" width="60" /> </p>
+
+<h1 align="center" style="color:#1c398e">
+  Wiredoor
+</h1>
+
+<p align="center">
+  <strong>Expose private services securely through reverse VPN tunnel powered by WireGuard and NGINX.</strong><br />
+  Open-source | Self-hosted
+</p>
+
+<p align="center">
+  <a href="https://docs.wiredoor.net">Documentation</a> •
+  <a href="https://github.com/wiredoor/server">Core Server</a> •
+  <a href="https://github.com/wiredoor/wiredoor-cli">CLI</a> •
+  <a href="https://charts.wiredoor.net">Helm Charts</a>
+</p>
+
+---
+
+# What is Wiredoor?
 
 **Wiredoor** is a self-hosted, open-source ingress-as-a-service platform that allows you to expose applications and services running in private or local networks to the internet—securely, reliably, and without complex infrastructure.
 
@@ -6,7 +26,7 @@ It uses reverse VPN connections powered by [WireGuard](https://www.wireguard.com
 
 ---
 
-## ✨ Features
+## Features
 
 - 🔐 **Secure VPN tunnel** with WireGuard (low latency and high performance)
 - 🌐 **Reverse proxy** with NGINX
@@ -46,10 +66,10 @@ services:
     environment:
       TZ: America/New_York # Set your timezone
       VPN_HOST: ${SERVER_PUBLIC_IP_OR_DOMAIN} # Change This Value with your server IP or FQDN
-      VPN_PORT: 51820 # VPN Port 
+      VPN_PORT: 51820 # VPN Port
       VPN_SUBNET: 10.12.1.0/24 # VLAN Subnet For VPN Interface
       SERVER_CERTBOT_EMAIL: youremail@email.com # Email used to send notifications about certbot SSL certificates
-#      TCP_SERVICES_PORT_RANGE: 32760-32767 # Optional Port range definition to expose TCP services if needed
+    #      TCP_SERVICES_PORT_RANGE: 32760-32767 # Optional Port range definition to expose TCP services if needed
     restart: unless-stopped
     volumes:
       - ~/wiredoor-data:/data
@@ -58,7 +78,7 @@ services:
       - 80:80/tcp
       - 443:443/tcp
       - 51820:51820/udp # Must match with VPN_PORT defined in environment
-#      - 32760-32767 # Must match with TCP_SERVICES_PORT_RANGE defined in environment
+    #      - 32760-32767 # Must match with TCP_SERVICES_PORT_RANGE defined in environment
     sysctls:
       - net.ipv4.ip_forward=1
 ```
@@ -101,13 +121,13 @@ Login using the default credentials shown in the terminal or provided in the doc
 
 ### 🤝 Why Wiredoor?
 
-| Feature                    |	Wiredoor |   Ngrok  | Cloudflare Tunnel |
-|----------------------------|-----------|----------|-------------------|
-| Open Source                |	   ✅   |    ❌    |        ❌        |
-| Self-Hosted                |	   ✅	 | Partial  |        ❌         |
-| Site-to-Site VPN Gateway   |     ✅   |    ❌    |        ❌        |
-| TCP + UDP Support          |	   ✅   | TCP only |     HTTP only     |
-| Automatic SSL Certificates |     ✅   |    ✅    |        ✅        |
+| Feature                    | Wiredoor | Ngrok    | Cloudflare Tunnel |
+| -------------------------- | -------- | -------- | ----------------- |
+| Open Source                | ✅       | ❌       | ❌                |
+| Self-Hosted                | ✅       | Partial  | ❌                |
+| Site-to-Site VPN Gateway   | ✅       | ❌       | ❌                |
+| TCP + UDP Support          | ✅       | TCP only | HTTP only         |
+| Automatic SSL Certificates | ✅       | ✅       | ✅                |
 
 ---
 
