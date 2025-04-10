@@ -20,7 +20,7 @@ traffic from the internet can be securely routed into your network via domain-ba
 
 ### Core components
 
-Wiredoor is composed of three main parts:
+Wiredoor is composed of four main parts:
 
 - [WireGuard](https://www.wireguard.com) VPN Server
 
@@ -34,11 +34,15 @@ Receives incoming internet traffic, and forwards it to the appropriate node and 
 
 Lets you easily manage connected nodes, assign domains, expose or hide services, and configure SSL certificates — all from a clean, modern UI.
 
+- Wiredoor CLI
+
+- Lightweight command-line tool designed to interact with the Wiredoor API from nodes directly.
+
 ### How is it different from traditional ingress or tunnels?
 
 Most existing ingress solutions require:
 
-- A cloud provider (e.g. AWS ELB, Cloudflare Tunnel)
+- A cloud provider (e.g. AWS ELB, Cloudflare Tunnel, Azure VPN)
 - Port forwarding on routers or firewalls
 - Manual reverse proxy configuration
 - Exposure of your private environment to the internet
@@ -55,11 +59,11 @@ authenticated VPN tunnel that you fully control.
 ```mermaid
 graph TD
     subgraph Private Network
-      A[Node / Gateway] --> B[Internal Service]
+      A[Node / Gateway] <--> B[Internal Service]
     end
-    A -->|WireGuard Tunnel| W[Wiredoor Server]
-    W --> N[NGINX Reverse Proxy]
-    N --> I[Public Internet]
+    A <-->|WireGuard Tunnel| W[Wiredoor Server]
+    W <--> N[NGINX Reverse Proxy]
+    N <--> I[Public Internet]
 ```
 
 1. Wiredoor runs on a public-facing server (with Docker or bare metal).
@@ -96,7 +100,7 @@ graph TD
 
 ## Get Started
 
-→ Ready to deploy? Continue to the [Installation Guide](./installation.md)
+→ Ready to deploy? Continue to the [Installation Guide](/docs/installation)
 
 ---
 

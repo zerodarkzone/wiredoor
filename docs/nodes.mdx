@@ -47,18 +47,13 @@ This gives you a working VPN tunnel between your node and Wiredoor.
 
 ### 2. Using `wiredoor-cli` (Recommended)
 
-`wiredoor-cli` is a lightweight client built in Go that can:
+[Wiredoor CLI](https://github.com/wiredoor/wiredoor-cli) is a lightweight client built in Go that can:
 
 - Establish and manage the WireGuard connection
 - Interact with the Wiredoor API
 - Automatically expose or hide services from the command line
-
-To use it:
-
-1. Create a node in the Web UI
-2. Copy the generated **token**
-3. Run `wiredoor-cli` on the node and provide the token
-4. Use CLI commands to connect, expose services, check status, etc.
+- Optionally Keep your node connected with automatic health checks
+- Detects and recovers from network issues and system restart
 
 (See [CLI documentation](./cli) for details)
 
@@ -113,13 +108,13 @@ You can define allowed subnets when creating or editing a gateway node.
 
 From the Web UI, you can:
 
-- 📥 Download the WireGuard config
-- 🔑 View or regenerate the API token
-- 🔌 Connect or disconnect the node
-- ♻️ Reset WireGuard config and rotate the API token
-- 🧭 View its VPN IP and connection status
-- 🌐 Expose/Disable services
-- 🔍 See which services are currently exposed
+- Download the WireGuard config
+- View or regenerate the API token
+- Connect or disconnect the node
+- Reset WireGuard config and rotate the API token
+- View its VPN IP and connection status
+- Expose/Disable services
+- See which services are currently exposed
 
 ---
 

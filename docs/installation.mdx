@@ -8,7 +8,7 @@ or at least from the network where you want to access the exposed services.
 
 Wiredoor is designed to run on a publicly reachable host so it can securely receive inbound traffic and forward it to your internal services over a private VPN tunnel.
 
-## Deploying Wiredoor Server in Docker
+## Deploying Wiredoor Server in Docker using Docker Compose
 
 This guide will walk you through installing **Wiredoor Server** using Docker. Wiredoor can run on any system that supports Docker, 
 but we strongly recommend using a Linux VPS with public IP access for production use.
@@ -27,13 +27,49 @@ Before you begin, make sure you have the following:
   - [Docker Engine](https://docs.docker.com/engine/install/)
   - (Optionally) [Docker Compose](https://docs.docker.com/compose/)
 
+### Project structure
+
+```bash
+wiredoor/
+├── wiredoor-data/
+├── wiredoor-certbot/
+├── wiredoor-logs/
+├── docker-compose.yml
+├── .env
+```
+
 ### Prepare persistent directories
 
-Wiredoor needs directories to store configuration, data, and SSL certificates:
+Wiredoor requires persistent directories to store configuration files, WireGuard keys, and SSL certificates.
+
+Create the necessary folders and ensure proper permissions:
 
 ```bash copy
-mkdir -p ~/{wiredoor-data,wiredoor-certbot,wiredoor-logs} && chown -R 1000:1000 ~/{wiredoor-data,wiredoor-certbot,wiredoor-logs}
+mkdir -p ./{wiredoor-data,wiredoor-certbot,wiredoor-logs} && chown -R 1000:1000 ./{wiredoor-data,wiredoor-certbot,wiredoor-logs}
 ```
+
+### Config Environment variables in `.env`
+
+Create a `.env` file at the root of the project to configure **Wiredoor** securely and flexibly, without hardcoding sensitive data into your `docker-compose.yml`.
+
+```dotenv filename=".env" copy
+# Wiredoor admin credentials
+ADMIN_EMAIL=admin@example.com           # Required. Also used by certbot if SSL is enabled
+ADMIN_PASSWORD=ChangeMe1st!             # Required. Use a secure password
+
+# VPN Information
+VPN_HOST=public_host_or_ip              # Required. Public address that clients will connect to
+VPN_PORT=51820                          # Default WireGuard UDP port
+VPN_SUBNET=10.0.0.0/24                  # Subnet for clients (in CIDR format)
+
+# TCP Port range
+TCP_SERVICES_PORT_RANGE=32760-32767     # Optional. Port range to expose TCP/UDP services
+
+# TCP/UDP Exposure (Public Port Range)
+TZ=America/New_York                     # Time zone (recommended for logging)
+```
+
+Check the [configuration documentation](/docs/configuration#environment-variables) for a full list of supported environment variables.
 
 ### Create `docker-compose.yml`
 
@@ -42,27 +78,22 @@ Below is a minimal example for running Wiredoor:
 ```yaml filename="docker-compose.yml" copy
 services:
   wiredoor:
-    image: infladoor/wiredoor:latest
+    image: ghcr.io/wiredoor/wiredoor:latest
     container_name: wiredoor
     cap_add:
       - NET_ADMIN
-    environment:
-      TZ: America/New_York                      # Set your timezone
-      VPN_HOST: ${SERVER_PUBLIC_IP_OR_DOMAIN}   # Change This Value with your server IP or FQDN
-      VPN_PORT: 51820                           # VPN Port 
-      VPN_SUBNET: 10.12.1.0/24                  # VLAN Subnet For VPN Interface
-      SERVER_CERTBOT_EMAIL: youremail@email.com # Email used to send notifications about certbot SSL certificates
-#      TCP_SERVICES_PORT_RANGE: 32760-32767     # Optional Port range definition to expose TCP services if needed
+    env_file:
+      - .env
     restart: unless-stopped
     volumes:
       - ~/wiredoor-data:/data
       - ~/wiredoor-certbot:/etc/letsencrypt
-      # - ~/wiredoor-logs:/var/log/nginx        # <--- Optional: NGINX access logs, you can mount an additional volume to collect them
+      # - ~/wiredoor-logs:/var/log/nginx        # <--- Optional: Mount for collecting NGINX logs
     ports:
       - 80:80/tcp
       - 443:443/tcp
-      - 51820:51820/udp                         # Must match with VPN_PORT defined in environment
-#      - 32760-32767                            # Must match with TCP_SERVICES_PORT_RANGE defined in environment
+      - 51820:51820/udp                         # Must match with VPN_PORT in .env
+#      - 32760-32767                            # Must match with TCP_SERVICES_PORT_RANGE in .env
     sysctls:
       - net.ipv4.ip_forward=1
 ```
@@ -71,45 +102,47 @@ services:
   You can customize the port range and subnet as needed for your environment.
 </Callout>
 
-<Callout type="tip" emoji="🔐">
-  For better security, you can define your environment variables in a `.env` file and reference them in your Docker Compose using `env_file: .env`. Be sure to add `.env` to your `.gitignore`.
-</Callout>
-
 ### Start Wiredoor
 
-Run the following command to start the Wiredoor server:
+Once configured, simply start the service:
 
 ```bash copy
 docker compose up -d
 ```
 
-Wiredoor will start and become available at: [https://SERVER_PUBLIC_IP_OR_DOMAIN](https://SERVER_PUBLIC_IP_OR_DOMAIN)
+Wiredoor Interface will start and become available at: [https://SERVER_PUBLIC_IP_OR_DOMAIN](https://SERVER_PUBLIC_IP_OR_DOMAIN)
 
 ### Default login
 
-Once started, access the web UI and log in using the default admin credentials printed in the container logs.
+Once started, access the web UI and log in using the admin credentials defined in `.env`.
 
 ### Updating Wiredoor
 
 You can update your Wiredoor instance at any time by pulling the latest image and recreating the container.
 
-This process is also required **if you change the configuration in your `docker-compose.yml` file**, such as environment variables, volume paths, or exposed ports.
+This process is also required **when you make changes to your configuration** such as:
+
+- Environment variables in `.env`
+- Volume mount paths
+- Exposed ports in `docker-compose.yml`
 
 <Callout type="warning" emoji="⚠️">
-  Exposed services may temporarily go offline during the restart (up to 2-3 minutes).
+  During the update, services exposed through Wiredoor may briefly go offline up to 2-3 minutes.
 </Callout>
 
 To update the Wiredoor image and apply config changes:
 
-Download latest image:
+Pull the latest Wiredoor image:
 ```bash copy
 docker compose pull wiredoor
 ```
 
-Recreate wiredoor instance with latest image and config:
+Recreate the container with updated configuration:
 ```bash copy
 docker compose up -d wiredoor --force-recreate
 ```
+
+**Your data and configuration will persist in `wiredoor-data`, `wiredoor-certbot`, `wiredoor-logs` directories.**
 
 
 {/* ## Deploying Wiredoor Server in Azure Container Services */}

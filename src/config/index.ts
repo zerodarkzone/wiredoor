@@ -50,7 +50,6 @@ export default {
   app: {
     name: process.env.APP_NAME || 'Wiredoor',
     port: parseInt(process.env.APP_PORT || '') || 3000,
-    bypassDNSValidation: process.env.BYPASS_DNS_VALIDATION === 'true' || null,
   },
   admin: {
     email: process.env.ADMIN_EMAIL || 'admin@example.com',
@@ -74,7 +73,6 @@ export default {
     logs: process.env.SERVER_LOGS_DIR || '/var/log/nginx',
   },
   wireguard: {
-    path: process.env.WG_PATH || '/etc/wireguard',
     host: process.env.VPN_HOST || 'localhost',
     port: VPN_PORT,
     subnet: subnet,

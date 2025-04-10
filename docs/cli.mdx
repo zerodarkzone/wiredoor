@@ -1,11 +1,14 @@
 # Wiredoor CLI
 
-`wiredoor-cli` is a lightweight command-line client written in Go, designed to interact with the Wiredoor Server.
+[Wiredoor CLI](https://github.com/wiredoor/wiredoor-cli)  is the command-line interface for interacting with the Wiredoor platform. 
+It provides a simple and secure way to register nodes, expose services, and manage connectivity directly from the terminal.
 
 It allows you to:
 
-- Connect your node to the VPN
-- Expose or unexpose services
+- Easily connect to new node in Wiredoor using admin credentials.
+- Quickly connect a private machine to the Wiredoor network without complex configuration.
+- Expose HTTP or TCP services running on your local/private network with just one command.
+- Enable or disable services on the fly
 - Check VPN status and connection logs
 - Automate service exposure on boot
 - Authenticate via token-based access
@@ -16,124 +19,181 @@ This CLI is especially useful for nodes running in headless environments (e.g., 
 
 ## Installation
 
-Download the latest release from the [Releases](https://github.com/wiredoor/wiredoor-cli/releases) page
+You can install wiredoor-cli from prebuilt packages or use the multi-arch Docker image. 
+Pick the method that suits your platform from the [Releases](https://github.com/wiredoor/wiredoor-cli/releases) page:
+
+### Debian/Ubuntu
+
+```bash
+wget https://github.com/wiredoor/wiredoor-cli/releases/download/v1.0.0/wiredoor_1.0.0-1_debian_amd64.deb
+sudo apt install -f ./wiredoor_1.0.0-1_debian_amd64.deb
+```
+
+### RHEL / Fedora / CentOS / AlmaLinux
+
+```bash
+wget https://github.com/wiredoor/wiredoor-cli/releases/download/v1.0.0/wiredoor_1.0.0-1_rpm_amd64.rpm
+sudo dnf install -y wiredoor_1.0.0-1_rpm_amd64.rpm
+```
+
+### Alpine Linux
+
+```bash
+wget https://github.com/wiredoor/wiredoor-cli/releases/download/v1.0.0/wiredoor_1.0.0-1_alpine_amd64.apk
+sudo apk add --allow-untrusted wiredoor_1.0.0-1_alpine_amd64.apk
+```
 
 ## Common Commands
 
 ### Login and Create Node
 
-The fastest way to onboard a new system as a node.
+The fastest way to onboard a new system as a node. Authenticate with a Wiredoor server using admin credentials and register this node via interactive prompts.
 
 ```bash
 wiredoor login --url https://your-wiredoor-instance-or-ip
 ```
 
-- Prompts for your admin credentials (username/password)
+- Prompts for your admin credentials (email/password)
 - Prompts you to assign a name to the node. Defaults to the machine’s hostname.
-- Retrieves and saves the node’s token to `/etc/wiredoor/config.ini`
+- Prompts you if you want to make this a gateway.
+- Network configuration for gateway and traffic.
+
+This command retrieves and saves the node’s token to `/etc/wiredoor/config.ini` and connect to wiredoor server.
 
 ### Connect to Wiredoor Node
 
-Optionally you can connect to already created node:
+Establish a VPN connection using saved or provided credentials.
 
 ```bash
-wiredoor connect --url https://your-wiredoor-instance-or-ip --token YOUR_NODE_TOKEN
+wiredoor connect
+wiredoor connect --url=https://wiredoor.example.com --token=ABC123
 ```
 
-### Regenerate Access
+- Uses `/etc/wiredoor/config.ini` by default
+- Optionally override `--url` and `--token`
 
-Regenerates the current node’s **WireGuard** keys and **API token**:
+### Wiredoor config
+
+Write the server URL and token to the config file without connecting.
 
 ```bash
-wiredoor regenerate
+wiredoor config --url=https://wiredoor.example.com --token=ABC123
 ```
 
-Expected downtime: ~1-3 seconds
+- Saves config to `/etc/wiredoor/config.ini`
+- Does **not** start the connection
 
-- Updates the remote config on the Wiredoor Server
-- Replaces local config in `/etc/wiredoor/config.ini`
-- Restarts the VPN connection with minimal downtime
+### Wiredoor Expose HTTP Service
 
-### Expose TCP Services
-
-Exposes the local TCP service running on port 1883 over Wiredoor
-
-```bash
-wiredoor tcp my-tcp-service --port 1883
-```
-
-Optional:
-
-```bash
---proto udp           # Optional: change protocol (default: tcp)
---domain example.com  # Optional: set a domain (default: uses Wiredoor public IP)
---use-ssl             # Optional: enable SSL termination for TCP services
-```
-
-- Exposes the local service running on port 1883 over Wiredoor
-- The public port is assigned automatically
-
-### Expose HTTP Services
+Expose a local HTTP service via Wiredoor.
 
 ```bash
 wiredoor http my-website --domain website.com --port 3000
 ```
 
-Optional:
+Optional flags:
+
+- `--path /ui` (default: /)
+- `--proto https` (default: http)
+- `--backendHost` (useful if acting as a gateway)
+- `--allow` / `--block` for IP access control
+
+### Wiredoor Expose TCP Service
+
+Expose a generic TCP/UDP service via wiredoor available port.
 
 ```bash
---path /ui     # Defaults to "/"
---proto https   # Defaults to "http"
+wiredoor tcp ssh-access --port 22
+wiredoor tcp redis --port 6379 --ssl --allowedIps 192.168.0.0/24
 ```
 
-- Exposes my-website running on http://localhost:3000 under https://website.com/
-- Automatically enables SSL using Let's Encrypt (if the domain is public and resolves wiredoor IP, if not it uses self-signed certificates)
+Optional flags:
 
-### Disable Public Access
+- `--proto tcp|udp` (default: `tcp`)
+- `--ssl` wrap in TLS
+- `--backendHost` (useful if acting as a gateway)
+- `--allow` / `--block` for IP access control
 
-```bash
-wiredoor disable http my-website
-```
+### Wiredoor Status
 
-Disables (but does not delete) the exposed service, making it inaccessible from outside.
-
-### Enable Public Access
-
-```bash
-wiredoor enable http my-website
-```
-
-Re-enables a service that was previously disabled, without redefining it.
-
-### Check status
-
-Prints the current state
+View current VPN and service status.
 
 ```bash
 wiredoor status
+wiredoor status --health
+wiredoor status --watch --interval 10
 ```
 
-- WireGuard tunnel status (connected/disconnected)
-- Exposed services (name, protocol, port, domain, status)
-- Node info (Name, VPN IP, connection time)
+Flags:
 
-```text
- ✔ WireGuard Connected
-🖥️ Node: my-hostname (10.0.0.4)
-🌐 Services:
-- my-website [HTTP] → https://website.com → localhost:3000
+- `--health`: Health check (exit 0/1)
+- `--watch`: Continuous monitoring
+- `--interval`: Poll interval (default: 5s)
+
+### Wiredoor disable
+
+Temporarily disable an exposed service by name.
+
+```bash
+wiredoor disable http my-website
+wiredoor disable tcp db-access
 ```
 
-### Disconnect 
+- Blocks public access
+- Use `wiredoor enable` to restore
+
+### Wiredoor enable
+
+Re-enable a previously disabled service.
+
+```bash
+wiredoor enable http my-website
+wiredoor enable tcp db-access
+```
+
+- Restores service availability
+- Requires existing configuration
+
+### Wiredoor disconnect
+
+Stop the active VPN tunnel and disable all services (temporarily).
 
 ```bash
 wiredoor disconnect
 ```
 
-Fully shuts down the VPN connection and marks the node as disconnected in the Web UI.
+- Does **not** delete the node configuration
+- Use before maintenance or to restart
 
-## Config File
+## Config file
 
 After first login or connection, the CLI stores configuration under: `/etc/wiredoor/config.ini`
 
-You can edit it manually or regenerate it by running `wiredoor login`, `wiredoor connect` or `wiredoor regenerate` again.
+You can edit it manually or regenerate it by running `wiredoor login`, `wiredoor connect`, `wiredoor config` or `wiredoor regenerate` again.
+
+## Systemd service
+
+If installed via package, Wiredoor includes a `systemd` service that runs a health-check in background to ensure persistent connectivity:
+
+- Reconnects automatically if connection drops
+- Verifies service exposure health every 15 seconds
+- Ideal for long-running nodes and production servers
+
+To run wiredoor service start and enable `wiredoor.service`:
+
+Systemd based systems:
+
+```bash
+sudo systemctl enable wiredoor
+sudo systemctl start wiredoor
+```
+
+OpenRC based systems (Alpine Linux):
+
+```bash
+chmod +x /etc/init.d/wiredoor
+rc-update add wiredoor
+rc-service wiredoor start
+```
+
+**This keeps the node online across reboots and network changes.**
