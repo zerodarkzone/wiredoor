@@ -32,7 +32,7 @@ const copyToken = async () => {
 const copyCommand = async () => {
   try {
     if (node.value?.personalAccessTokens && node.value?.personalAccessTokens[0].token)
-      await navigator.clipboard.writeText(`wiredoor-cli connect --server=${config?.VPN_HOST} --token=${node.value?.personalAccessTokens[0].token}`)
+      await navigator.clipboard.writeText(`wiredoor connect --url=${config?.VPN_HOST} --token=${node.value?.personalAccessTokens[0].token}`)
   } catch {}
 }
 </script>
@@ -70,8 +70,8 @@ const copyCommand = async () => {
             title="Wiredoor CLI"
             :entries="[
               {
-                command: 'wiredoor-cli connect',
-                flags: ['--server=https://my-wiredoor-ip', '--token=XXXXXXXX'],
+                command: 'wiredoor connect',
+                flags: ['--url=https://my-wiredoor-ip', '--token=XXXXXXXX'],
                 results: ['Configuring wiredoor...', 'Connecting node...', 'Connection established!'],
                 copy: true,
               },
