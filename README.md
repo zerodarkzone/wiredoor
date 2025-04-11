@@ -155,16 +155,6 @@ Login using the provided credentials in the environemnt variables.
 - Remotely monitor or control IoT / industrial devices
 - Replace complex VPN setups with a simpler alternative
 
-### 🤝 Why Wiredoor?
-
-| Feature                    | Wiredoor | Ngrok    | Cloudflare Tunnel |
-| -------------------------- | -------- | -------- | ----------------- |
-| Open Source                | ✅       | ❌       | ❌                |
-| Self-Hosted                | ✅       | Partial  | ❌                |
-| Site-to-Site VPN Gateway   | ✅       | ❌       | ❌                |
-| TCP + UDP Support          | ✅       | TCP only | HTTP only         |
-| Automatic SSL Certificates | ✅       | ✅       | ✅                |
-
 ---
 
 ### 🛠️ Coming soon
