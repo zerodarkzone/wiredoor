@@ -170,12 +170,12 @@ This will ensure that only the argocd-server Pod in the argocd namespace can be 
 
 ## Notes & Limitations
 
-- ✅ **DNS service resolution** is built-in. This allows Wiredoor to resolve Kubernetes service names such as `my-service.my-namespace.svc.cluster.local` without relying on the cluster DNS.
-- 📛 You **must use fully qualified service names** when exposing services. Short names like `my-service` will not resolve correctly — use full service domain names (e.g., `api.default.svc.cluster.local`).
-- 🔐 **NetworkPolicies are built into the Helm chart**. You can restrict egress traffic from the Wiredoor Kubernetes Gateway Pod using `networkPolicy.egress` in the Helm values. This ensures the gateway can only reach specific Pods or Namespaces.
-- 🔁 The gateway only routes traffic to **services within the configured subnet**. Be sure to define the correct **service subnet** (e.g. `10.96.0.0/12`) when creating the gateway node in Wiredoor. This limits exposure to unintended parts of your cluster.
-- ⚠️ The gateway Pod **must run in a namespace with access** to the services you intend to expose. If you use Network Policies or strict namespace isolation, adjust accordingly.
-- 📦 The gateway runs as a regular Kubernetes Deployment — it does **not require privileged mode**, host networking, or elevated permissions.
-- 🌍 Wiredoor terminates **SSL connections automatically** using Let’s Encrypt (for public domains) or generates self-signed certs (for local/internal domains).
+- **DNS service resolution** is built-in. This allows Wiredoor to resolve Kubernetes service names such as `my-service.my-namespace.svc.cluster.local` without relying on the cluster DNS.
+- You **must use fully qualified service names** when exposing services. Short names like `my-service` will not resolve correctly — use full service domain names (e.g., `api.default.svc.cluster.local`).
+- **NetworkPolicies are built into the Helm chart**. You can restrict egress traffic from the Wiredoor Kubernetes Gateway Pod using `networkPolicy.egress` in the Helm values. This ensures the gateway can only reach specific Pods or Namespaces.
+- The gateway only routes traffic to **services within the configured subnet**. Be sure to define the correct **service subnet** (e.g. `10.96.0.0/12`) when creating the gateway node in Wiredoor. This limits exposure to unintended parts of your cluster.
+- The gateway Pod **must run in a namespace with access** to the services you intend to expose. If you use Network Policies or strict namespace isolation, adjust accordingly.
+- The gateway runs as a regular Kubernetes Deployment — it does **not require privileged mode**, host networking, or elevated permissions.
+- Wiredoor terminates **SSL connections automatically** using Let’s Encrypt (for public domains) or generates self-signed certs (for local/internal domains).
 
 Following these best practices will ensure your Wiredoor Gateway is secure, efficient, and production-ready.
