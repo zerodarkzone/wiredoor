@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import SvgIcon from '@/components/SvgIcon'
 import ToolTip from '@/components/ui/ToolTip.vue'
 import type { Node } from '@/utils/validators/node-validator'
 
@@ -12,8 +11,18 @@ const props = defineProps<{
   <div class="pl-2">
     <ToolTip>
       <template #trigger>
-        <SvgIcon v-if="props.node.isGateway" name="gateway" class="w-5 h-5 text-blue-800" />
-        <SvgIcon v-else name="node" class="w-5 h-5 text-gray-600" />
+        <div
+          v-if="props.node.isGateway"
+          class="text-xs inline-flex font-medium bg-sky-500/20 text-sky-700 rounded-full text-center px-2.5 py-1"
+        >
+          Gateway
+        </div>
+        <div
+          v-else
+          class="text-xs inline-flex font-medium bg-green-500/20 text-sky-700 rounded-full text-center px-2.5 py-1"
+        >
+          Node
+        </div>
       </template>
       <template #default>
         <div v-if="props.node.isGateway" class="text-sm">
