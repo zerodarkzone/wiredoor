@@ -127,7 +127,7 @@ docker compose up -d
 
 Once the service is running, visit: [https://<YOUR_PUBLIC_IP_OR_DOMAIN>]()
 
-Login using the default credentials shown in the terminal or provided in the documentation.
+Login using the provided credentials in the environemnt variables.
 
 ## How It Works
 
