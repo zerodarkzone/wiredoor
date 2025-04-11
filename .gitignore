@@ -5,6 +5,7 @@ db.sqlite
 # IDE specific files
 .idea/
 .vscode/
+docker/.env
 
 # Locally installed dependencies
 /node_modules/
