@@ -86,9 +86,9 @@ services:
       - .env
     restart: unless-stopped
     volumes:
-      - ~/wiredoor-data:/data
-      - ~/wiredoor-certbot:/etc/letsencrypt
-      # - ~/wiredoor-logs:/var/log/nginx        # <--- Optional: Mount for collecting NGINX logs
+      - ./wiredoor-data:/data
+      - ./wiredoor-certbot:/etc/letsencrypt
+      # - ./wiredoor-logs:/var/log/nginx        # <--- Optional: Mount for collecting NGINX logs
     ports:
       - 80:80/tcp
       - 443:443/tcp
