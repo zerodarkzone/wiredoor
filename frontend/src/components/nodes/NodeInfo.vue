@@ -31,8 +31,8 @@ const copyToken = async () => {
 
 const copyCommand = async () => {
   try {
-    if (node.value?.personalAccessTokens && node.value?.personalAccessTokens[0].token)
-      await navigator.clipboard.writeText(`wiredoor connect --url=${config?.VPN_HOST} --token=${node.value?.personalAccessTokens[0].token}`)
+    if (node.value?.token)
+      await navigator.clipboard.writeText(`wiredoor connect --url=${config?.VPN_HOST} --token=${node.value?.token}`)
   } catch {}
 }
 </script>
@@ -54,8 +54,8 @@ const copyCommand = async () => {
 
         <div class="mt-5">
           <InputField
-            v-if="node.personalAccessTokens"
-            v-model="node.personalAccessTokens[0].token"
+            v-if="node.token"
+            v-model="node.token"
             field="token"
             :action="copyIcon"
             message="The token is only visible once. Make sure to store it securely."
