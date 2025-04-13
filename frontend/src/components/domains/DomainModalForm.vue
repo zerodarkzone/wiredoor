@@ -51,19 +51,19 @@ const sslOptions = [
           label="SSL Certificate Type"
           description="Select the SSL certificate type for this domain. If validation is skipped, only self-signed certificates will be available."
           :options="sslOptions"
-          :disabled="formData.validation"
-          :message="formData.validation ? 'Self-Signed when skipping domain validation' : undefined"
+          :disabled="formData.skipValidation"
+          :message="formData.skipValidation ? 'Self-Signed when skipping domain validation' : undefined"
           required
         />
 
         <CheckboxField
-          v-model="formData.validation"
+          v-model="formData.skipValidation"
           class="mt-4 mb-2"
           label="Skip Domain Validation"
           description="If you skip domain validation, Certbot (Let's Encrypt) certificates cannot be issued. Only self-signed certificates will be available."
           @change="
             (e) => {
-              if (formData.validation) {
+              if (formData.skipValidation) {
                 formData.ssl = 'self-signed'
               }
             }

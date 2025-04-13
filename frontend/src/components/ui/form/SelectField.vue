@@ -91,7 +91,7 @@ const handleBlur = () => {
             :key="option.value"
             @click="selectOption(option)"
             class="font-medium text-sm flex items-center px-3 py-1 cursor-pointer hover:bg-gray-200 hover:dark:bg-gray-700"
-            :class="{ 'bg-gray-100': option.value === model }"
+            :class="{ 'bg-gray-100 dark:bg-gray-700': option.value === model }"
           >
             {{ option.label }}
           </div>

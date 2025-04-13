@@ -8,9 +8,10 @@ import {
   DomainType,
 } from '../validators/domain-validator';
 import { SSLManager } from './proxy-server/ssl-manager';
-import { BadRequestError, NotFoundError } from 'routing-controllers';
+import { NotFoundError } from 'routing-controllers';
 import Net from '../utils/net';
 import { PagedData } from '../repositories/filters/repository-query-filter';
+import { ValidationError } from '../utils/errors/validation-error';
 
 @Service()
 export class DomainsService {
@@ -93,9 +94,15 @@ export class DomainsService {
     const old = await this.getDomain(id);
 
     if (params.domain && params.domain !== old.domain) {
-      throw new BadRequestError(
-        "You can't edit domain name. Add a new one and delete this.",
-      );
+      throw new ValidationError({
+        body: [
+          {
+            field: 'domain',
+            message:
+              "Domain names can't be changed. Add a new one and delete this one instead.",
+          },
+        ],
+      });
     }
 
     let sslPair = old.sslPair;
