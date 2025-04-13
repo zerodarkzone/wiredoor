@@ -10,9 +10,13 @@ import {
 import { AuthTokenHandler } from '../middlewares/auth-token-handler';
 import { AccessLogsService } from '../services/access-logs-service';
 import BaseController from './base-controller';
-import { LogStreamQueryParams } from '../validators/log-validator';
+import {
+  logParamsValidator,
+  LogStreamQueryParams,
+} from '../validators/log-validator';
 import { Request, Response } from 'express';
 import { SetupSSE } from '../middlewares/setup-sse';
+import { celebrate } from 'celebrate';
 
 @Service()
 @JsonController('/logs')
@@ -23,7 +27,12 @@ export default class LogController extends BaseController {
   }
 
   @Get('/stream')
-  @UseBefore(SetupSSE)
+  @UseBefore(
+    celebrate({
+      params: logParamsValidator,
+    }),
+    SetupSSE,
+  )
   async getLogsAsStream(
     @QueryParams() filters: LogStreamQueryParams,
     @Req() req: Request,
