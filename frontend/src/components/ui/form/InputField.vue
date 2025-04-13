@@ -69,7 +69,7 @@ const emit = defineEmits(['change', 'input', 'blur', 'action'])
             @click.prevent="emit('action')"
             class="rounded-full w-7 h-7 flex justify-center items-center hover:cursor-pointer hover:bg-gray-100 lg:hover:bg-gray-200 dark:hover:bg-gray-700/50 dark:lg:hover:bg-gray-800"
           >
-            <SvgIcon :name="props.action" class="w-3 h-3" />
+            <SvgIcon :name="props.action" class="w-3 h-3 dark:text-gray-200 dark:fill-current" />
           </button>
         </div>
       </div>
