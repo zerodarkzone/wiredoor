@@ -88,7 +88,7 @@ const wiredoorMainPage = 'https://www.wiredoor.net'
 
           <div class="flex justify-center items-center mt-4 space-x-4">
             <a
-              href="https://github.com/sponsors/wiredoor"
+              href="https://github.com/sponsors/dmesad"
               target="_blank"
               class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 transition"
             >
@@ -98,7 +98,7 @@ const wiredoorMainPage = 'https://www.wiredoor.net'
             <a
               href="https://github.com/wiredoor/wiredoor"
               target="_blank"
-              class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-neutral-800 transition"
+              class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-neutral-800 transition"
             >
               ⭐ Star on GitHub
             </a>
