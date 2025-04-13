@@ -38,6 +38,19 @@ export default class IP_CIDR {
     return this.longToIp(networkLong + 1);
   }
 
+  static belongsToSubnet(ip: string, subnet: string): boolean {
+    if (!this.isValidIP(ip) || !subnet.includes('/')) return false;
+
+    try {
+      const ipLong = this.ipToLong(ip);
+      const [networkLong, broadcastLong] = this.cidrToRange(subnet);
+
+      return ipLong >= networkLong && ipLong <= broadcastLong;
+    } catch {
+      return false;
+    }
+  }
+
   static getAvailableIP(cidr: string, bussyIPList: string[]): string | null {
     const [networkLong, broadcastLong] = this.cidrToRange(cidr);
     const bussyLong = bussyIPList.map(this.ipToLong);

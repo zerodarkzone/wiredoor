@@ -1,6 +1,31 @@
-import { ObjectSchema } from 'joi';
+import { ObjectSchema, ValidationError } from 'joi';
 import Joi from './joi-validator';
 import { FilterQueryDto } from '../repositories/filters/repository-query-filter';
+import IP_CIDR from '../utils/ip-cidr';
+import config from '../config';
+
+export const validateSubnet = async (c: string): Promise<string> => {
+  if (c) {
+    if (
+      IP_CIDR.isValidIP(config.wireguard.host) &&
+      IP_CIDR.belongsToSubnet(config.wireguard.host, c)
+    ) {
+      throw new ValidationError(
+        `subnet validation failed`,
+        [
+          {
+            path: ['gatewaySubnet'],
+            message: `Gateway subnet shouldn't include Wiredoor IP`,
+            type: 'Error',
+          },
+        ],
+        null,
+      );
+    }
+  }
+
+  return c;
+};
 
 export interface NodeFilterQueryParams extends FilterQueryDto {
   limit?: number;
@@ -56,7 +81,10 @@ export const createNodeValidator: ObjectSchema<CreateNodeType> = Joi.object({
   isGateway: Joi.boolean().optional(),
   gatewayNetwork: Joi.string().when('isGateway', {
     is: true,
-    then: Joi.string().ip({ cidr: 'required' }).required(),
+    then: Joi.string()
+      .ip({ cidr: 'required' })
+      .external(validateSubnet)
+      .required(),
     otherwise: Joi.valid(null, '').optional(),
   }),
   // interface: Joi.string().optional(),
