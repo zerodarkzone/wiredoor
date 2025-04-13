@@ -14,7 +14,7 @@ export const validateSubnet = async (c: string): Promise<string> => {
         `subnet validation failed`,
         [
           {
-            path: ['gatewaySubnet'],
+            path: ['gatewayNetwork'],
             message: `Gateway subnet shouldn't include Wiredoor IP`,
             type: 'Error',
           },
