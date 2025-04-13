@@ -3,10 +3,8 @@ import {
   ForbiddenError,
   UnauthorizedError,
 } from 'routing-controllers';
-import { Inject, Service } from 'typedi';
+import { Service } from 'typedi';
 import { NextFunction, Request, Response } from 'express';
-import { NodesService } from '../services/nodes-service';
-import { PatService } from '../services/pat-service';
 import jwt from 'jsonwebtoken';
 import config from '../config';
 import { PersonalAccessToken } from '../database/models/personal-access-token';
@@ -16,12 +14,31 @@ export interface AuthenticatedUser extends PersonalAccessToken {
   address?: string;
 }
 
+export const getDataFromToken = async (token: string): Promise<any> => {
+  if (!token || token === 'None') {
+    throw new UnauthorizedError();
+  }
+
+  let data = undefined;
+
+  try {
+    const jwtDef = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+
+    if (!token.startsWith(jwtDef)) {
+      token = `${jwtDef}.${token}`;
+    }
+
+    data = jwt.verify(token, config.jwt.secret);
+  } catch {
+    throw new UnauthorizedError();
+  }
+
+  return data;
+};
+
 @Service()
 export class AuthTokenHandler implements ExpressMiddlewareInterface {
-  constructor(
-    @Inject() private readonly nodesService: NodesService,
-    @Inject() private readonly patService: PatService,
-  ) {}
+  constructor() {}
 
   async use(
     request: Request,
@@ -38,44 +55,16 @@ export class AuthTokenHandler implements ExpressMiddlewareInterface {
   }
 
   async getUserFromToken(token: string): Promise<AuthenticatedUser> {
-    if (!token || token === 'None') {
-      throw new UnauthorizedError();
-    }
-
-    let data = undefined;
-
-    try {
-      const jwtDef = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
-
-      if (!token.startsWith(jwtDef)) {
-        token = `${jwtDef}.${token}`;
-      }
-
-      data = jwt.verify(token, config.jwt.secret);
-    } catch {
-      throw new UnauthorizedError();
-    }
+    const data = await getDataFromToken(token);
 
     if (!data) {
       throw new UnauthorizedError();
     }
 
-    if (data.type === 'client') {
-      const pat = await this.patService.getPatById(data.id, ['node']);
-
-      if (!pat || pat.revoked || pat.expireAt > new Date()) {
-        throw new ForbiddenError();
-      }
-
-      return {
-        ...data,
-        nodeId: pat.nodeId,
-        nodeName: pat.node.name,
-        address: pat.node.address,
-        tokenName: pat.name,
-      };
+    if (data.type === 'admin') {
+      return data;
+    } else {
+      throw new ForbiddenError();
     }
-
-    return data;
   }
 }

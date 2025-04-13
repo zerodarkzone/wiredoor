@@ -139,4 +139,61 @@ describe('Nodes Management API', () => {
       expect(deletedRes.status).toBe(404);
     });
   });
+  describe('GET /api/nodes/:id/pats', () => {
+    it('should reject unauthenticated if no token provided', async () => {
+      const res = await request.get('/api/nodes/1/pats');
+
+      expect(res.status).toBe(401);
+    });
+    it('should list available token for node', async () => {
+      const token = mockAuthenticatedToken();
+      const createdRes = await request
+        .post('/api/nodes')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ name: 'clientCreated' });
+
+      const res = await request
+        .get(`/api/nodes/${createdRes.body.id}/pats`)
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(res.status).toBe(200);
+      console.log(res.body);
+      expect(res.body.length).toEqual(1);
+    });
+  });
+  describe('POST /api/nodes/:id/pats', () => {
+    it('should reject unauthenticated if no token provided', async () => {
+      const res = await request.post('/api/nodes/1/pats').send({ name: 'any' });
+
+      expect(res.status).toBe(401);
+    });
+    it('should list available token for node', async () => {
+      const token = mockAuthenticatedToken();
+      const createdRes = await request
+        .post('/api/nodes')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ name: 'clientCreated' });
+
+      const res = await request
+        .post(`/api/nodes/${createdRes.body.id}/pats`)
+        .set('Authorization', `Bearer ${token}`)
+        .send({ name: 'NewToken' });
+
+      expect(res.status).toBe(200);
+      expect(res.body.token).toEqual(expect.any(String));
+
+      const forbiddenRes = await request
+        .get('/api/nodes')
+        .set('Authorization', `Bearer ${res.body.token}`);
+
+      expect(forbiddenRes.status).toEqual(403);
+
+      const successfullRes = await request
+        .get('/api/cli/node')
+        .set('Authorization', `Bearer ${res.body.token}`);
+
+      expect(successfullRes.status).toEqual(200);
+      expect(successfullRes.body.name).toEqual('clientCreated');
+    });
+  });
 });

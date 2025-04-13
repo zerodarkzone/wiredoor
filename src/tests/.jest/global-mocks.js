@@ -126,7 +126,10 @@ jest.mock('../../utils/wg-cli.ts', () => {
 });
 
 function mockAuthenticatedToken(c) {
-  const claims = { id: c?.id || 0, node: c?.name || 'admin', address: c?.address, type: c?.type || 'admin' }
+  const claims = {
+    id: c?.id || 0,
+    type: c?.type || 'admin',
+  };
   return jwt.sign(claims, config.jwt.secret);
 }
 

@@ -25,20 +25,18 @@ import {
   TcpServiceType,
   tcpServiceValidator,
 } from '../validators/tcp-service-validator';
-import {
-  AuthenticatedUser,
-  AuthTokenHandler,
-} from '../middlewares/auth-token-handler';
+import { AuthenticatedUser } from '../middlewares/auth-token-handler';
 import BaseController from './base-controller';
 import { NodeInfo, NodeWithToken } from '../database/models/node';
 import { WGConfigObject } from '../services/wireguard/wireguard-service';
 import { HttpService } from '../database/models/http-service';
 import { PagedData } from '../repositories/filters/repository-query-filter';
 import { TcpService } from '../database/models/tcp-service';
+import { CliTokenHandler } from '../middlewares/cli-token-handler';
 
 @Service()
 @JsonController('/cli')
-@UseBefore(AuthTokenHandler)
+@UseBefore(CliTokenHandler)
 export default class CLiController extends BaseController {
   constructor(
     @Inject() private readonly nodesService: NodesService,
@@ -52,6 +50,7 @@ export default class CLiController extends BaseController {
   async getCliNode(
     @CurrentUser({ required: true }) cli: AuthenticatedUser,
   ): Promise<NodeInfo> {
+    console.log(cli);
     return this.nodesService.getNodeInfo(+cli.nodeId, [
       'httpServices',
       'tcpServices',
