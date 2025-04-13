@@ -38,21 +38,15 @@ export class CliTokenHandler implements ExpressMiddlewareInterface {
     }
 
     if (data.type === 'client') {
-      const pat = await this.patService.getPatById(data.id, ['node']);
+      const pat = await this.patService.getPatById(data.id);
 
       if (!pat || pat.revoked || pat.expireAt > new Date()) {
         throw new ForbiddenError();
       }
 
-      console.log(data);
-
-      console.log(pat);
-
       return {
         ...data,
         nodeId: pat.nodeId,
-        nodeName: pat.node?.name,
-        address: pat.node?.address,
         tokenName: pat.name,
       };
     } else {

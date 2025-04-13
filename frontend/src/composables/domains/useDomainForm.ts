@@ -1,6 +1,6 @@
-import { useFormModal } from '../useFormModal';
-import { useToast } from '../useToast';
-import { domainValidator, type Domain, type DomainForm } from '@/utils/validators/domain-validator';
+import { useFormModal } from '../useFormModal'
+import { useToast } from '../useToast'
+import { domainValidator, type Domain, type DomainForm } from '@/utils/validators/domain-validator'
 
 let id: number | undefined = undefined
 
@@ -16,12 +16,12 @@ const {
   validate,
 } = useFormModal<DomainForm>(domainValidator)
 
-export function useDomainForm () {
+export function useDomainForm() {
   const { toast } = useToast()
 
   const openDomainForm = (
     callback?: (form: DomainForm, id: number | undefined) => void,
-    initialData: Partial<Domain> = { domain: '', ssl: '', validation: false },
+    initialData: Partial<Domain> = { domain: '', ssl: '', skipValidation: false },
     ID: number | undefined = undefined,
   ) => {
     id = ID
@@ -37,6 +37,7 @@ export function useDomainForm () {
         } else {
           toast('Domain updated successfully!', 'success')
         }
+        // eslint-disable-next-line no-extra-boolean-cast
         if (!!callback) {
           callback(form, id)
         }
@@ -44,5 +45,15 @@ export function useDomainForm () {
     })
   }
 
-  return { isOpen, formData, options, errors, closeDialog, submitDialog, validateField, validate, openDomainForm }
+  return {
+    isOpen,
+    formData,
+    options,
+    errors,
+    closeDialog,
+    submitDialog,
+    validateField,
+    validate,
+    openDomainForm,
+  }
 }
