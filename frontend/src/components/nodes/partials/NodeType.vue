@@ -12,14 +12,20 @@ const props = defineProps<{
     <ToolTip>
       <template #trigger>
         <div
-          v-if="props.node.isGateway"
+          v-if="props.node.isLocal"
+          class="text-xs inline-flex font-medium bg-orange-500/20 text-orange-700 rounded-full text-center px-2.5 py-1"
+        >
+          Local
+        </div>
+        <div
+          v-else-if="props.node.isGateway"
           class="text-xs inline-flex font-medium bg-sky-500/20 text-sky-700 rounded-full text-center px-2.5 py-1"
         >
           Gateway
         </div>
         <div
           v-else
-          class="text-xs inline-flex font-medium bg-green-500/20 text-sky-700 rounded-full text-center px-2.5 py-1"
+          class="text-xs inline-flex font-medium bg-green-500/20 text-green-700 rounded-full text-center px-2.5 py-1"
         >
           Node
         </div>

@@ -100,6 +100,7 @@ class WireguardService {
       this.nodeRepository.find({
         where: {
           enabled: true,
+          isLocal: false,
           wgInterface,
         },
       }),

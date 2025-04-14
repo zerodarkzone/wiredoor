@@ -87,7 +87,7 @@ onUnmounted(async () => {
             <div class="px-5 py-3 w-7/10">
               <div class="flex items-center">
                 <!-- Red dot -->
-                <NodeStatus class="mr-3" :node="node" />
+                <NodeStatus v-if="node.isLocal === false" class="mr-3" :node="node" />
                 <div class="w-full">
                   <div class="text-2xl font-bold text-gray-800 dark:text-gray-100 mr-2">
                     {{ node.name }}
@@ -111,7 +111,7 @@ onUnmounted(async () => {
                 </div>
               </div>
             </div>
-            <DropDown>
+            <DropDown v-if="node.isLocal === false">
               <template #trigger>
                 <span class="sr-only">Actions</span>
                 <SvgIcon name="more" class="w-8 h-8 fill-current" />
@@ -210,7 +210,7 @@ onUnmounted(async () => {
               </li>
             </EditMenu> -->
           </header>
-          <div class="grow px-5 pt-3 pb-1">
+          <div v-if="node.isLocal === false" class="grow px-5 pt-3 pb-1">
             <div class="overflow-x-auto">
               <table class="table-auto w-full dark:text-gray-300">
                 <!-- Table body -->
@@ -276,6 +276,7 @@ onUnmounted(async () => {
         </div>
       </div>
       <div
+        v-if="node.isLocal === false"
         class="flex flex-col col-span-full sm:col-span-6 bg-white dark:bg-gray-800 shadow-xs rounded-xl"
       >
         <TokensCard :node="node" />

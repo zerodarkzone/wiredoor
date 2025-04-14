@@ -52,7 +52,7 @@ export async function loadApp(): Promise<express.Application> {
 }
 
 async function shutDownApp(): Promise<void> {
-  await Container.get<DataSource>('dataSource').destroy();
+  // await Container.get<DataSource>('dataSource').destroy();
   stopPing();
 }
 

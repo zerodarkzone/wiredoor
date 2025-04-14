@@ -10,6 +10,7 @@ export interface Node {
   allowedIPs: string
   enabled: boolean
   isGateway: boolean
+  isLocal?: boolean
   allowInternet?: boolean
   gatewayNetwork?: string
   latestHandshakeTimestamp?: number

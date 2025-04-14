@@ -1,4 +1,5 @@
 import Joi from 'joi';
+import os from 'os';
 
 export default class IP_CIDR {
   static isValidIP(ip: string, version = ['ipv4', 'ipv6']): boolean {
@@ -58,6 +59,31 @@ export default class IP_CIDR {
     for (let i = networkLong + 2; i < broadcastLong; i++) {
       if (!bussyLong.includes(i)) {
         return this.longToIp(i);
+      }
+    }
+
+    return null;
+  }
+
+  static getLocalSubnet(): string | null {
+    const interfaces = os.networkInterfaces();
+    const excluded = ['lo', 'wg0', 'docker0', 'tun0', 'virbr0'];
+
+    for (const name of Object.keys(interfaces)) {
+      if (excluded.includes(name)) continue;
+
+      const iface = interfaces[name];
+      if (!iface) continue;
+
+      for (const net of iface) {
+        if (net.family === 'IPv4' && !net.internal) {
+          const ip = this.ipToLong(net.address);
+          const mask = this.ipToLong(net.netmask);
+          const network = ip & mask;
+          const cidr = 32 - Math.clz32(~mask >>> 0);
+
+          return `${this.longToIp(network)}/${cidr}`;
+        }
       }
     }
 

@@ -76,6 +76,11 @@ export class Node {
   })
   isGateway: boolean;
 
+  @Column('boolean', {
+    default: false,
+  })
+  isLocal: boolean;
+
   @OneToMany(() => HttpService, (service) => service.node, {
     onDelete: 'CASCADE',
   })
