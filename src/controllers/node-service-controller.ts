@@ -14,7 +14,6 @@ import { Inject, Service } from 'typedi';
 import Joi from 'joi';
 import { celebrate } from 'celebrate';
 import BaseController from './base-controller';
-import { AuthTokenHandler } from '../middlewares/auth-token-handler';
 import {
   HttpServiceFilterQueryParams,
   httpServiceFilterValidator,
@@ -32,10 +31,11 @@ import { TcpServicesService } from '../services/tcp-services-service';
 import { HttpService } from '../database/models/http-service';
 import { PagedData } from '../repositories/filters/repository-query-filter';
 import { TcpService } from '../database/models/tcp-service';
+import { AdminTokenHandler } from '../middlewares/admin-token-handler';
 
 @Service()
 @JsonController('/services')
-@UseBefore(AuthTokenHandler)
+@UseBefore(AdminTokenHandler)
 export default class NodeServiceController extends BaseController {
   constructor(
     @Inject() private readonly httpServicesService: HttpServicesService,

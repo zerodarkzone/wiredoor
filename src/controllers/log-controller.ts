@@ -7,7 +7,6 @@ import {
   Res,
   UseBefore,
 } from 'routing-controllers';
-import { AuthTokenHandler } from '../middlewares/auth-token-handler';
 import { AccessLogsService } from '../services/access-logs-service';
 import BaseController from './base-controller';
 import {
@@ -17,10 +16,11 @@ import {
 import { Request, Response } from 'express';
 import { SetupSSE } from '../middlewares/setup-sse';
 import { celebrate } from 'celebrate';
+import { AdminTokenHandler } from '../middlewares/admin-token-handler';
 
 @Service()
 @JsonController('/logs')
-@UseBefore(AuthTokenHandler)
+@UseBefore(AdminTokenHandler)
 export default class LogController extends BaseController {
   constructor(@Inject() private readonly accessLogsService: AccessLogsService) {
     super();

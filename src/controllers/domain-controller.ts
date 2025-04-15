@@ -11,7 +11,6 @@ import {
   QueryParams,
   UseBefore,
 } from 'routing-controllers';
-import { AuthTokenHandler } from '../middlewares/auth-token-handler';
 import BaseController from './base-controller';
 import { DomainsService } from '../services/domains-service';
 import {
@@ -22,10 +21,11 @@ import {
 } from '../validators/domain-validator';
 import { Domain } from '../database/models/domain';
 import { PagedData } from '../repositories/filters/repository-query-filter';
+import { AdminTokenHandler } from '../middlewares/admin-token-handler';
 
 @Service()
 @JsonController('/domains')
-@UseBefore(AuthTokenHandler)
+@UseBefore(AdminTokenHandler)
 export default class DomainController extends BaseController {
   constructor(@Inject() private readonly domainsService: DomainsService) {
     super();
