@@ -76,6 +76,7 @@ describe('Nodes Service', () => {
     httpServicesService = new HttpServicesService(
       httpServiceRepository,
       new HttpServiceQueryFilter(httpServiceRepository),
+      repository,
       domainService,
     );
     tcpServicesService = new TcpServicesService(
@@ -100,7 +101,7 @@ describe('Nodes Service', () => {
   });
 
   afterEach(async () => {
-    await repository.clear();
+    // await repository.clear();
     jest.clearAllMocks();
   });
 
@@ -112,7 +113,7 @@ describe('Nodes Service', () => {
 
       const result = await service.getNodes({});
 
-      expect((result as NodeInfo[]).length).toEqual(1);
+      expect((result as NodeInfo[]).length).toEqual(2);
     });
     it('should get nodes paginated', async () => {
       const data = makeNodeData();
@@ -129,6 +130,8 @@ describe('Nodes Service', () => {
   describe('Create Node', () => {
     it('should create node and update wireguard config', async () => {
       const data = makeNodeData();
+
+      jest.clearAllMocks();
 
       const result = await service.createNode(data);
 

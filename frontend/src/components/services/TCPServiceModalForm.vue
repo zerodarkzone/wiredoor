@@ -101,7 +101,7 @@ const { isOpen, formData, errors, options, closeDialog, submitDialog, validateFi
             label="Backend Protocol & Hostname/IP"
             description="slot"
             :errors="errors"
-            :required="node?.isGateway"
+            :required="node?.isGateway || node?.isLocal"
             :tabindex="3"
           >
             <template #tooltip>
@@ -137,8 +137,8 @@ const { isOpen, formData, errors, options, closeDialog, submitDialog, validateFi
                 <InputField
                   v-model="formData.backendHost"
                   field="backendHost"
-                  placeholder="localhost"
-                  :disabled="!node?.isGateway"
+                  placeholder="host/ip"
+                  :disabled="!(node?.isGateway || node?.isLocal)"
                   :tabindex="5"
                 />
               </div>

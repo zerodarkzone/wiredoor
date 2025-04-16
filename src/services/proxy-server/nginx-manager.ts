@@ -193,7 +193,9 @@ export class NginxManager {
           service.domain,
         );
 
-        serverConf.setStreamSSLCertificate(domain.sslPair);
+        if (domain) {
+          serverConf.setStreamSSLCertificate(domain.sslPair);
+        }
       } else {
         const sslPair = await SSLManager.getSelfSignedCertificates('_');
         serverConf.setStreamSSLCertificate(sslPair);

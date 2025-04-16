@@ -87,6 +87,7 @@ const {
             description="Define the public path where the service will be available (e.g., /api). The combination of Public Domain + Public Path must be unique."
             :errors="errors"
             :tabindex="2"
+            :disabled="(node?.isLocal && formData.backendHost === 'localhost')"
           />
         </div>
         <div>
@@ -95,7 +96,7 @@ const {
             label="Backend Protocol & Hostname/IP"
             description="slot"
             :errors="errors"
-            :required="node?.isGateway"
+            :required="node?.isGateway || node?.isLocal"
             :tabindex="3"
           >
             <template #tooltip>
@@ -124,6 +125,7 @@ const {
                     { label: 'http://', value: 'http' },
                     { label: 'https://', value: 'https' },
                   ]"
+                  :disabled="(node?.isLocal && formData.backendHost === 'localhost')"
                   :tabindex="4"
                 />
               </div>
@@ -131,8 +133,8 @@ const {
                 <InputField
                   v-model="formData.backendHost"
                   field="backendHost"
-                  placeholder="localhost"
-                  :disabled="!node?.isGateway"
+                  placeholder="host/ip"
+                  :disabled="!(node?.isGateway || node?.isLocal) || (node?.isLocal && formData.backendHost === 'localhost')"
                   :tabindex="5"
                 />
               </div>
@@ -149,6 +151,7 @@ const {
             description="Specify the port where the service is running on the specified hostname or node (e.g., 8080)."
             :errors="errors"
             :tabindex="6"
+            :disabled="(node?.isLocal && formData.backendHost === 'localhost')"
             required
             @input="(e) => validateField('backendPort')"
           />

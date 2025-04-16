@@ -12,14 +12,19 @@ import { HttpServiceQueryFilter } from '../repositories/filters/http-service-que
 import { NginxManager } from './proxy-server/nginx-manager';
 import { DomainsService } from './domains-service';
 import { PagedData } from '../repositories/filters/repository-query-filter';
+import { BaseServices } from './base-services';
+import { NodeRepository } from '../repositories/node-repository';
 
 @Service()
-export class HttpServicesService {
+export class HttpServicesService extends BaseServices {
   constructor(
     @Inject() private readonly httpServiceRepository: HttpServiceRepository,
     @Inject() private readonly httpServiceFilter: HttpServiceQueryFilter,
+    @Inject() private readonly nodeRepository: NodeRepository,
     @Inject() private readonly domainService: DomainsService,
-  ) {}
+  ) {
+    super(nodeRepository);
+  }
 
   public async initialize(): Promise<void> {
     const services = await this.httpServiceRepository.find({
@@ -75,6 +80,8 @@ export class HttpServicesService {
     nodeId: number,
     params: HttpServiceType,
   ): Promise<HttpService> {
+    await this.checkNodePort(nodeId, params.backendPort, params.backendHost);
+
     const { id } = await this.httpServiceRepository.save({ ...params, nodeId });
 
     const httpService = await this.getHttpService(id, ['node']);
@@ -88,7 +95,24 @@ export class HttpServicesService {
     id: number,
     params: Partial<HttpServiceType>,
   ): Promise<HttpService> {
-    const old = await this.getHttpService(id);
+    const old = await this.getHttpService(id, ['node']);
+
+    if (old.node.isLocal && old.backendHost === 'localhost') {
+      params = {
+        name: params.domain,
+        domain: params.domain,
+        allowedIps: params.allowedIps,
+        blockedIps: params.blockedIps,
+      };
+    }
+
+    if (params.backendHost && params.backendPort) {
+      await this.checkNodePort(
+        old.nodeId,
+        params.backendPort,
+        params.backendHost,
+      );
+    }
 
     await NginxManager.removeHttpService(old, false);
 
@@ -131,7 +155,11 @@ export class HttpServicesService {
   }
 
   public async deleteHttpService(id: number): Promise<string> {
-    const httpService = await this.getHttpService(id);
+    const httpService = await this.getHttpService(id, ['node']);
+
+    if (httpService.node.isLocal && httpService.backendHost === 'localhost') {
+      throw new BadRequestError(`Wiredoor APP can't be deleted`);
+    }
 
     await NginxManager.removeHttpService(httpService);
 

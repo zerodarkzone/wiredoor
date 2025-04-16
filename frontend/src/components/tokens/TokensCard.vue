@@ -88,7 +88,7 @@ const handleSubmit = (form: PAT, id?: number) => {
       class="flex justify-between items-center px-5 py-4 border-b border-gray-100 dark:border-gray-700/60"
     >
       <h2 class="font-semibold text-gray-800 dark:text-gray-100">Node Access Tokens</h2>
-      <Button variant="black" size="sm" @click="addToken">+ Add Token</Button>
+      <Button variant="black" :disabled="node.isLocal" size="sm" @click="addToken">+ Add Token</Button>
     </header>
     <div class="p-3">
       <!-- Table -->

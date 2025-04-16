@@ -147,7 +147,8 @@ defineExpose({ createNode })
       @add="createNode"
     >
       <template #status="{ row }">
-        <NodeStatus :node="row as unknown as Node" />
+        <NodeStatus v-if="!row.isLocal" :node="row as unknown as Node" />
+        <span v-else></span>
       </template>
       <template #name="{ row }">
         <RouterLink :to="`/nodes/${row.id}`" class="text-blue-500 hover:underline">{{
@@ -186,7 +187,7 @@ defineExpose({ createNode })
                 <span>View Node Details</span>
               </router-link>
             </li>
-            <li>
+            <li v-if="!row.isLocal">
               <a
                 class="font-medium text-sm flex items-center py-1 px-3 hover:bg-gray-100 hover:dark:bg-gray-700"
                 :href="`/nodes/${row.id}/edit`"
@@ -231,7 +232,7 @@ defineExpose({ createNode })
                 <span>Expose TCP</span>
               </a>
             </li>
-            <li>
+            <li v-if="!row.isLocal">
               <a
                 class="font-medium text-sm flex items-center py-1 px-3 hover:bg-gray-100 hover:dark:bg-gray-700"
                 :href="`/nodes/${row.id}/config`"
@@ -246,8 +247,8 @@ defineExpose({ createNode })
                 <span>Download Config</span>
               </a>
             </li>
-            <hr class="border-gray-200 dark:border-gray-600" />
-            <li v-if="row.enabled">
+            <hr v-if="!row.isLocal" class="border-gray-200 dark:border-gray-600" />
+            <li v-if="row.enabled && !row.isLocal">
               <a
                 class="font-medium text-sm flex items-center py-1 px-3 hover:bg-gray-100 hover:dark:bg-gray-700"
                 :href="`/nodes/${row.id}/disable`"
@@ -265,7 +266,7 @@ defineExpose({ createNode })
                 <span>Disconnect</span>
               </a>
             </li>
-            <li v-else>
+            <li v-if="!row.enabled && !row.isLocal">
               <a
                 class="font-medium text-sm flex items-center py-1 px-3 hover:bg-gray-100 hover:dark:bg-gray-700"
                 :href="`/nodes/${row.id}/enable`"
@@ -283,8 +284,8 @@ defineExpose({ createNode })
                 <span>Connect</span>
               </a>
             </li>
-            <hr class="border-gray-200 dark:border-gray-600" />
-            <li>
+            <hr v-if="!row.isLocal" class="border-gray-200 dark:border-gray-600" />
+            <li v-if="!row.isLocal">
               <a
                 class="font-medium text-sm flex items-center py-1 px-3 hover:bg-gray-100 hover:dark:bg-gray-700"
                 :href="`/nodes/${row.id}/delete`"

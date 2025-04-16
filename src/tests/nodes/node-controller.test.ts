@@ -30,7 +30,7 @@ describe('Nodes Management API', () => {
         .set('Authorization', `Bearer ${token}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.data[0]).toEqual(
+      expect(res.body.data[1]).toEqual(
         expect.objectContaining({
           name: 'client',
         }),
@@ -157,7 +157,6 @@ describe('Nodes Management API', () => {
         .set('Authorization', `Bearer ${token}`);
 
       expect(res.status).toBe(200);
-      console.log(res.body);
       expect(res.body.length).toEqual(1);
     });
   });

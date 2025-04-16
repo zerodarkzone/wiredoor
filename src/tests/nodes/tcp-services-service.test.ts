@@ -80,6 +80,7 @@ describe('TCP Services Service', () => {
     httpServicesService = new HttpServicesService(
       httpServiceRepository,
       new HttpServiceQueryFilter(httpServiceRepository),
+      nodeRepository,
       domainService,
     );
     service = new TcpServicesService(
@@ -111,8 +112,8 @@ describe('TCP Services Service', () => {
 
   afterEach(async () => {
     await repository.clear();
-    await nodeRepository.clear();
-    await domainRepository.clear();
+    // await nodeRepository.clear();
+    // await domainRepository.clear();
     jest.clearAllMocks();
   });
 

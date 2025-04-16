@@ -122,8 +122,6 @@ export class DomainsService {
 
     const domain = await this.getDomain(id);
 
-    console.log(domain);
-
     await this.buildServerConfig(domain);
 
     return domain;
@@ -144,7 +142,6 @@ export class DomainsService {
     restart = true,
   ): Promise<void> {
     if (!domain.sslPair && domain.ssl) {
-      console.log(domain);
       domain.sslPair = await SSLManager.getSSLCertificates(
         domain.domain,
         domain.ssl as SSLTermination,

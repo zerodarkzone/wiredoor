@@ -80,7 +80,12 @@ describe('HTTP Services Service', () => {
       nodeRepository,
       domainService,
     );
-    service = new HttpServicesService(repository, filter, domainService);
+    service = new HttpServicesService(
+      repository,
+      filter,
+      nodeRepository,
+      domainService,
+    );
 
     nodesService = new NodesService(
       nodeRepository,

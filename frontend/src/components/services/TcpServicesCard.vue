@@ -236,7 +236,7 @@ const editService = (service: TcpService) => {
                     "
                   >
                     <SvgIcon name="delete" class="w-4 h-4 text-red-500 shrink-0 mr-2" />
-                    <span>Delete Node</span>
+                    <span>Delete Service</span>
                   </a>
                 </li>
               </template>
