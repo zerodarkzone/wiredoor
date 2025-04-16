@@ -30,7 +30,7 @@ export interface HttpServiceForm {
 
 export const httpServiceValidator: ObjectSchema<HttpServiceForm> = Joi.object({
   name: Joi.string().required(),
-  domain: Joi.string().domain().optional(),
+  domain: Joi.string().domain().allow(null, '').optional(),
   pathLocation: Joi.string().pattern(/^\/.*/).optional(),
   backendProto: Joi.string().valid('http', 'https').allow(null).optional(),
   backendHost: Joi.string().allow(null).optional(),

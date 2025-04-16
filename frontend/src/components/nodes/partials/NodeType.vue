@@ -31,7 +31,11 @@ const props = defineProps<{
         </div>
       </template>
       <template #default>
-        <div v-if="props.node.isGateway" class="text-sm">
+        <div v-if="props.node.isLocal" class="text-sm">
+          Created automatically to expose internal<br>
+          services running on this Wiredoor server.
+        </div>
+        <div v-else-if="props.node.isGateway" class="text-sm">
           This node is a gateway, <br />
           forwarding traffic to: <span class="font-bold">{{ props.node.gatewayNetwork }}</span>
           <br />

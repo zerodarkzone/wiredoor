@@ -50,7 +50,6 @@ export default class CLiController extends BaseController {
   async getCliNode(
     @CurrentUser({ required: true }) cli: AuthenticatedUser,
   ): Promise<NodeInfo> {
-    console.log(cli);
     return this.nodesService.getNodeInfo(+cli.nodeId, [
       'httpServices',
       'tcpServices',

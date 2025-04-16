@@ -49,7 +49,7 @@ describe('Personal Access Token Service', () => {
 
   afterEach(async () => {
     await repository.clear();
-    await nodeRepository.clear();
+    // await nodeRepository.clear();
     jest.clearAllMocks();
   });
 

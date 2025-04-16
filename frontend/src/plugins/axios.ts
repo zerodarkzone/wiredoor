@@ -1,9 +1,12 @@
 import axios from 'axios'
 import { useAuthStore } from '@/stores/auth'
+import { useToast } from '../composables/useToast'
 
 // const agent = new https.Agent({
 //   rejectUnauthorized: false,
 // })
+
+const { toast } = useToast()
 
 axios.interceptors.request.use(
   (requestConfig) => {
@@ -34,6 +37,11 @@ axios.interceptors.response.use(
     }
 
     const { status } = error.response
+
+    if (status === 400) {
+      console.log(error.response)
+      toast(error.response.data?.message || 'Unknown Error', 'error')
+    }
 
     if ([401, 403, 429].includes(status)) {
       console.log('Logging out by API response')

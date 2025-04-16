@@ -12,7 +12,7 @@ import WireguardService, {
 import { HttpServicesService } from './http-services-service';
 import { TcpServicesService } from './tcp-services-service';
 import { PatService } from './pat-service';
-import { NotFoundError } from 'routing-controllers';
+import { BadRequestError, NotFoundError } from 'routing-controllers';
 import { NodeQueryFilter } from '../repositories/filters/node-query-filter';
 import Net from '../utils/net';
 import { PagedData } from '../repositories/filters/repository-query-filter';
@@ -88,6 +88,11 @@ export class NodesService {
     const node = await this.nodeRepository.findOne({
       where: { id },
     });
+
+    if (node.isLocal) {
+      throw new BadRequestError(`Local node can't be regenerated`);
+    }
+
     const regeneratedData = await this.wireguardService.getClientParams(
       {
         name: node.name,
@@ -146,11 +151,19 @@ export class NodesService {
   public async getNodeConfig(id: number): Promise<string> {
     const node = await this.getNode(id);
 
+    if (node.isLocal) {
+      throw new BadRequestError(`Local node doesn't have wireguard config`);
+    }
+
     return this.wireguardService.getClientConfig(node);
   }
 
   public async getNodeWGConfig(id: number): Promise<WGConfigObject> {
     const node = await this.getNode(id);
+
+    if (node.isLocal) {
+      throw new BadRequestError(`Local node doesn't have wireguard config`);
+    }
 
     const wgConfig = await this.wireguardService.getClientWGConfig(node);
 
@@ -162,6 +175,11 @@ export class NodesService {
     res: Response,
   ): Promise<Response> {
     const node = await this.getNode(id);
+
+    if (node.isLocal) {
+      throw new BadRequestError(`Local node doesn't have wireguard config`);
+    }
+
     const config = await this.wireguardService.getClientConfig(node);
 
     res.set(
@@ -178,6 +196,10 @@ export class NodesService {
     params: Partial<CreateNodeType>,
   ): Promise<Node> {
     const old = await this.getNode(id);
+
+    if (old.isLocal) {
+      throw new BadRequestError(`Local node can't be updated`);
+    }
 
     if (old.isGateway) {
       await this.disableGateway(old);
@@ -209,6 +231,10 @@ export class NodesService {
 
   public async deleteNode(id: number): Promise<string> {
     const old = await this.getNode(id);
+
+    if (old.isLocal) {
+      throw new BadRequestError(`Local node can't be deleted`);
+    }
 
     if (old.isGateway) {
       await this.disableGateway(old);

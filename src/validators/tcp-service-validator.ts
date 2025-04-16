@@ -45,7 +45,7 @@ export const tcpServiceValidator: ObjectSchema<TcpServiceType> = Joi.object({
     .external(nslookupResolvesServerIp)
     .optional(),
   proto: Joi.string().valid('tcp', 'udp').allow(null).optional(),
-  backendHost: Joi.string().allow(null).optional(),
+  backendHost: Joi.string().allow(null).invalid('localhost').optional(),
   backendPort: Joi.number().port().required(),
   port: Joi.number()
     .min(config.server.port_range ? +config.server.port_range.split('-')[0] : 0)
