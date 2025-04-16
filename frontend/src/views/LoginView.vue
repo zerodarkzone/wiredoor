@@ -10,6 +10,7 @@
           <h1 class="text-2xl font-medium text-blue-900">Wiredoor</h1>
         </router-link>
       </div>
+      <Alert v-if="invalid" class="w-full" type="error" :message="invalidMessage" closable @close="() => { invalid = false }" />
       <!-- Form -->
       <form class="mt-4 space-y-6" action="#" method="POST" @submit.prevent="signIn">
         <div class="space-y-4">
@@ -78,6 +79,7 @@
 <script setup lang="ts">
 import AuthLayout from '@/components/layouts/AuthLayout.vue'
 import SvgIcon from '@/components/SvgIcon'
+import Alert from '@/components/ui/Alert.vue'
 import { useAuthStore } from '@/stores/auth'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
@@ -86,20 +88,27 @@ const authStore = useAuthStore()
 const router = useRouter()
 
 const loading = ref(false)
+const invalid = ref(false)
+const invalidMessage = ref('Invalid Credentials')
 const form = ref({
   username: '',
   password: '',
 })
 
 const signIn = async () => {
-  console.log(form)
   loading.value = true
   try {
     await authStore.login(form.value.username, form.value.password)
-    await router.push(authStore.redirect)
+    await router.push(authStore.redirect || '/')
     authStore.setRedirect('/')
-  } catch (e) {
-    console.error(e)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (e: any) {
+    invalid.value = true
+    if (e.response.status == 429) {
+      invalidMessage.value = 'Too many attempts, try again later'
+    } else {
+      invalidMessage.value = 'Invalid Credentials'
+    }
   } finally {
     loading.value = false
   }
