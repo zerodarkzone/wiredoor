@@ -1,42 +1,20 @@
 import {
   ExpressMiddlewareInterface,
+  ForbiddenError,
   UnauthorizedError,
 } from 'routing-controllers';
 import { Service } from 'typedi';
 import { NextFunction, Request, Response } from 'express';
-import jwt from 'jsonwebtoken';
-import config from '../config';
 import { PersonalAccessToken } from '../database/models/personal-access-token';
+import { getDataFromToken } from './auth-token-handler';
 
 export interface AuthenticatedUser extends PersonalAccessToken {
   nodeName?: string;
   address?: string;
 }
 
-export const getDataFromToken = async (token: string): Promise<any> => {
-  if (!token || token === 'None') {
-    throw new UnauthorizedError();
-  }
-
-  let data = undefined;
-
-  try {
-    const jwtDef = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
-
-    if (!token.startsWith(jwtDef)) {
-      token = `${jwtDef}.${token}`;
-    }
-
-    data = jwt.verify(token, config.jwt.secret);
-
-    return data;
-  } catch {
-    throw new UnauthorizedError();
-  }
-};
-
 @Service()
-export class AuthTokenHandler implements ExpressMiddlewareInterface {
+export class AdminTokenHandler implements ExpressMiddlewareInterface {
   constructor() {}
 
   async use(
@@ -60,6 +38,10 @@ export class AuthTokenHandler implements ExpressMiddlewareInterface {
       throw new UnauthorizedError();
     }
 
-    return data;
+    if (data.type === 'admin') {
+      return data;
+    } else {
+      throw new ForbiddenError();
+    }
   }
 }

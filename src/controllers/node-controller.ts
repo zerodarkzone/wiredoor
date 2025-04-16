@@ -29,7 +29,6 @@ import {
 } from '../validators/pat-validator';
 import { NodesService } from '../services/nodes-service';
 import { PatService } from '../services/pat-service';
-import { AuthTokenHandler } from '../middlewares/auth-token-handler';
 import { ResponseSSE, SetupSSE } from '../middlewares/setup-sse';
 import BaseController from './base-controller';
 import { Node, NodeInfo, NodeWithToken } from '../database/models/node';
@@ -38,10 +37,11 @@ import {
   PersonalAccessToken,
   PersonalAccessTokenWithToken,
 } from '../database/models/personal-access-token';
+import { AdminTokenHandler } from '../middlewares/admin-token-handler';
 
 @Service()
 @JsonController('/nodes')
-@UseBefore(AuthTokenHandler)
+@UseBefore(AdminTokenHandler)
 export default class NodeController extends BaseController {
   constructor(
     @Inject() private readonly nodesService: NodesService,
