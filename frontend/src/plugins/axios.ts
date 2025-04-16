@@ -44,11 +44,13 @@ axios.interceptors.response.use(
     }
 
     if ([401, 403, 429].includes(status)) {
-      console.log('Logging out by API response')
       const auth = useAuthStore()
 
-      await auth.logout()
-      console.log('Logged out by API response')
+      if (auth.token) {
+        console.log('Logging out by API response')
+        await auth.logout()
+        console.log('Logged out by API response')
+      }
     }
 
     return Promise.reject(error)
