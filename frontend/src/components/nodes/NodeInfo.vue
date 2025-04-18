@@ -32,7 +32,7 @@ const copyToken = async () => {
 const copyCommand = async () => {
   try {
     if (node.value?.token)
-      await navigator.clipboard.writeText(`wiredoor connect --url=${config?.VPN_HOST} --token=${node.value?.token}`)
+      await navigator.clipboard.writeText(`wiredoor connect --url=${config?.VPN_HOST || 'https://public_wiredoor_url'} --token=${node.value?.token}`)
   } catch {}
 }
 </script>
