@@ -91,10 +91,13 @@ export class NginxManager {
 
     let host = service.node.address;
 
-    if (service.node.isGateway && service.backendHost) {
+    if (
+      (service.node.isGateway || service.node.isLocal) &&
+      service.backendHost
+    ) {
       host = service.backendHost;
 
-      if (!IP_CIDR.isValidIP(service.backendHost)) {
+      if (service.node.isGateway && !IP_CIDR.isValidIP(service.backendHost)) {
         serviceLocation.setResolver(service.node.address);
       }
     }
@@ -153,7 +156,7 @@ export class NginxManager {
     }
 
     const serverAddress =
-      service.node.isGateway && service.backendHost
+      (service.node.isGateway || service.node.isLocal) && service.backendHost
         ? service.backendHost
         : service.node.address;
 
