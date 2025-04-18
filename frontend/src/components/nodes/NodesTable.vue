@@ -272,7 +272,7 @@ defineExpose({ createNode })
                 :href="`/nodes/${row.id}/enable`"
                 @click.prevent="
                   () => {
-                    enableNode(row.id, table.updateItem(row.id, { ...row, enabled: true }))
+                    enableNode(row.id, () => table.updateItem(row.id, { ...row, enabled: true }))
                     close()
                   }
                 "
