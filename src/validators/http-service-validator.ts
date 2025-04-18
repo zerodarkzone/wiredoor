@@ -2,6 +2,18 @@ import { ObjectSchema } from 'joi';
 import Joi from './joi-validator';
 import { FilterQueryDto } from '../repositories/filters/repository-query-filter';
 import { nslookupResolvesServerIp } from './domain-validator';
+import Container from 'typedi';
+import { DomainRepository } from '../repositories/domain-repository';
+
+export const validateServiceDomain = async (c: string): Promise<string> => {
+  const domain = await Container.get(DomainRepository).getDomainByName(c);
+
+  if (domain) {
+    return c;
+  }
+
+  return nslookupResolvesServerIp(c);
+};
 
 export interface HttpServiceType {
   name: string;
@@ -40,7 +52,7 @@ export const httpServiceValidator: ObjectSchema<HttpServiceType> = Joi.object({
   domain: Joi.string()
     .domain()
     .allow(null, '')
-    .external(nslookupResolvesServerIp)
+    .external(validateServiceDomain)
     .optional(),
   pathLocation: Joi.string().pattern(/^\/.*/).optional(),
   backendProto: Joi.string().valid('http', 'https').allow(null).optional(),

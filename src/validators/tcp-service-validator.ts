@@ -2,7 +2,7 @@ import { ObjectSchema } from 'joi';
 import Joi from './joi-validator';
 import config from '../config';
 import { FilterQueryDto } from '../repositories/filters/repository-query-filter';
-import { nslookupResolvesServerIp } from './domain-validator';
+import { validateServiceDomain } from './http-service-validator';
 
 export interface TcpServiceType {
   name: string;
@@ -42,7 +42,7 @@ export const tcpServiceValidator: ObjectSchema<TcpServiceType> = Joi.object({
   domain: Joi.string()
     .domain()
     .allow(null, '')
-    .external(nslookupResolvesServerIp)
+    .external(validateServiceDomain)
     .optional(),
   proto: Joi.string().valid('tcp', 'udp').allow(null).optional(),
   backendHost: Joi.string().allow(null).invalid('localhost').optional(),
