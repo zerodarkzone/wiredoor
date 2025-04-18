@@ -8,6 +8,8 @@ import type { Domain, DomainForm } from '@/utils/validators/domain-validator'
 import type { ColumnDef, Empty } from '@/components/ui/table/DataTable.vue'
 import { useDomainActions } from '@/composables/domains/useDomainActions'
 import { useDomainForm } from '@/composables/domains/useDomainForm'
+import HttpServicesCard from '../services/HttpServicesCard.vue'
+import TcpServicesCard from '../services/TcpServicesCard.vue'
 
 const { openDomainForm } = useDomainForm()
 const { deleteDomain } = useDomainActions()
@@ -17,6 +19,18 @@ const emptyDomains: Empty = {
   description:
     "You haven't added any domain yet. Once you add domains or services, they will appear here for easy management.",
   action: 'Add Domain',
+}
+
+const emptyHttp: Empty = {
+  title: 'No HTTP services yet',
+  description:
+    "You haven't added any HTTP service yet. Expose your first service from Client / Nodes",
+}
+
+const emptyTcp: Empty = {
+  title: 'No TCP services yet',
+  description:
+    "You haven't added any TCP service yet. Expose your first service from Client / Nodes",
 }
 
 const domainColumns: ColumnDef[] = [
@@ -53,7 +67,10 @@ const editNode = (domain: Domain) => {
   openDomainForm(handleSubmit, domain, domain.id)
 }
 
- 
+const domainExpanded = (index: number, domain: Domain) => {
+  console.log('Column expanded for ' + domain.domain);
+}
+
 const handleSubmit = (data: DomainForm, id: number | undefined = undefined) => {
   if (id) {
     table.value.updateItem(id, data)
@@ -73,11 +90,17 @@ defineExpose({ createDomain })
       :empty="emptyDomains"
       endpoint="/api/domains"
       @add="createDomain"
+      @expand="domainExpanded"
       expandable
     >
       <template #expandedRow="{ row }">
-        <div class="flex items-center dark:text-gray-400 p-3">
-          Example expanded row for domain {{ row.domain }}
+        <div class="grid grid-cols-12 gap-4 mt-4">
+          <div class="flex flex-col col-span-full lg:col-span-6">
+            <HttpServicesCard :endpoint="`/api/services/http?domain=${row.domain}`" :overwriteEmpty="emptyHttp" />
+          </div>
+          <div class="flex flex-col col-span-full lg:col-span-6">
+            <TcpServicesCard :endpoint="`/api/services/tcp?domain=${row.domain}`" :overwriteEmpty="emptyTcp" />
+          </div>
         </div>
       </template>
       <template #domain="{ row }">

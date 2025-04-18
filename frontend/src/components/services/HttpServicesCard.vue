@@ -21,6 +21,11 @@ const table = ref()
 
 const props = defineProps({
   node: Object as PropType<Node>,
+  overwriteEmpty: Object as PropType<Empty>,
+  endpoint: {
+    type: String,
+    default: '/api/services/http'
+  },
 })
 
 const emptyServices: Empty = {
@@ -86,7 +91,7 @@ const editService = (service: HttpService) => {
       class="flex justify-between items-center px-5 py-4 border-b border-gray-100 dark:border-gray-700/60"
     >
       <h2 class="font-semibold text-gray-800 dark:text-gray-100">HTTP Services</h2>
-      <Button variant="black" size="sm" @click="addService">+ Add Service</Button>
+      <Button v-if="props.node" variant="black" size="sm" @click="addService">+ Add Service</Button>
     </header>
     <div class="p-3">
       <!-- Table -->
@@ -98,8 +103,8 @@ const editService = (service: HttpService) => {
           :tbody="tbody"
           :filters="{ limit: 5 }"
           :tableContainer="{ class: 'w-full min-h-[340px]' }"
-          :empty="emptyServices"
-          :endpoint="`/api/services/${route.params.id}/http`"
+          :empty="props.overwriteEmpty ? props.overwriteEmpty : emptyServices"
+          :endpoint="props.node ? `/api/services/${route.params.id}/http` : props.endpoint"
           @add="addService"
         >
           <template #name="{ row }">
