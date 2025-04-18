@@ -42,7 +42,10 @@ const logMonitor = () => {
 
     eventSource.onerror = (error) => {
       console.error('SSE ERROR:', error)
-      appendLogs(['[ERROR] SSE ERROR'])
+      setTimeout(() => {
+        console.log('reconnecting...')
+        logMonitor()
+      }, 1000)
     }
   }
 }
