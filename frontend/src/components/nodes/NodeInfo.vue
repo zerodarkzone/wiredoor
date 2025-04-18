@@ -5,12 +5,9 @@ import TerminalWindow from '@/components/TerminalWindow.vue'
 import { Button }  from '@/components/ui/button'
 import InputField from '../ui/form/InputField.vue'
 import { useNodeActions } from '@/composables/nodes/useNodeActions'
-import { ref } from 'vue'
-import { useConfigStore } from '@/stores/config'
+import { computed, ref } from 'vue'
 
 const { isOpen, closeDialog, node } = useNodeInfo()
-
-const { config } = useConfigStore()
 
 const { downloadConfig } = useNodeActions()
 
@@ -29,10 +26,12 @@ const copyToken = async () => {
   }
 }
 
+const publicUrl = computed(() => window.location.origin)
+
 const copyCommand = async () => {
   try {
     if (node.value?.token)
-      await navigator.clipboard.writeText(`wiredoor connect --url=${config?.VPN_HOST || 'https://public_wiredoor_url'} --token=${node.value?.token}`)
+      await navigator.clipboard.writeText(`wiredoor connect --url=${publicUrl} --token=${node.value?.token}`)
   } catch {}
 }
 </script>
@@ -71,7 +70,7 @@ const copyCommand = async () => {
             :entries="[
               {
                 command: 'wiredoor connect',
-                flags: ['--url=https://my-wiredoor-ip', '--token=XXXXXXXX'],
+                flags: [`--url=https://${publicUrl}`, '--token=XXXXXXXX'],
                 results: ['Configuring wiredoor...', 'Connecting node...', 'Connection established!'],
                 copy: true,
               },
