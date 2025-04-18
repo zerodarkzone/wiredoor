@@ -5,7 +5,7 @@ const emit = defineEmits(['close'])
 
 const props = defineProps({
   id: {
-    type: String,
+    type: Number,
   },
   class: {
     type: String,
