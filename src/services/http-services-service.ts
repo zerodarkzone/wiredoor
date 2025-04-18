@@ -80,7 +80,7 @@ export class HttpServicesService extends BaseServices {
     nodeId: number,
     params: HttpServiceType,
   ): Promise<HttpService> {
-    await this.checkNodePort(nodeId, params.backendPort, params.backendHost);
+    // await this.checkNodePort(nodeId, params.backendPort, params.backendHost);
 
     const { id } = await this.httpServiceRepository.save({ ...params, nodeId });
 

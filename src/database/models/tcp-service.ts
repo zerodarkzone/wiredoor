@@ -72,7 +72,9 @@ export class TcpService {
   })
   blockedIps: string[];
 
-  @ManyToOne(() => Node)
+  @ManyToOne(() => Node, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'nodeId' })
   node: Node;
 
