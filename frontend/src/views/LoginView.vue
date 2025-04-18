@@ -99,7 +99,11 @@ const signIn = async () => {
   loading.value = true
   try {
     await authStore.login(form.value.username, form.value.password)
-    await router.push(authStore.redirect || '/')
+    if (authStore.redirect) {
+      await router.push(authStore.redirect)
+    } else {
+      await router.push('/')
+    }
     authStore.setRedirect('/')
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (e: any) {
