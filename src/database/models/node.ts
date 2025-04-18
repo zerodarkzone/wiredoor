@@ -81,22 +81,15 @@ export class Node {
   })
   isLocal: boolean;
 
-  @OneToMany(() => HttpService, (service) => service.node, {
-    onDelete: 'CASCADE',
-  })
+  @OneToMany(() => HttpService, (service) => service.node)
   httpServices: HttpService[];
 
-  @OneToMany(() => TcpService, (service) => service.node, {
-    onDelete: 'CASCADE',
-  })
+  @OneToMany(() => TcpService, (service) => service.node)
   tcpServices: TcpService[];
 
   @OneToMany(
     () => PersonalAccessToken,
     (personalAccessToken) => personalAccessToken.node,
-    {
-      onDelete: 'CASCADE',
-    },
   )
   personalAccessTokens: PersonalAccessToken[];
 

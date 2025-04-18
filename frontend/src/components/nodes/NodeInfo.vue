@@ -31,7 +31,7 @@ const publicUrl = computed(() => window.location.origin)
 const copyCommand = async () => {
   try {
     if (node.value?.token)
-      await navigator.clipboard.writeText(`wiredoor connect --url=${publicUrl} --token=${node.value?.token}`)
+      await navigator.clipboard.writeText(`wiredoor connect --url=${publicUrl.value} --token=${node.value?.token}`)
   } catch {}
 }
 </script>
@@ -47,7 +47,7 @@ const copyCommand = async () => {
 
         <p>
           The easiest and most secure way to connect is by using the
-          <a class="text-blue-500 hover:underline cursor-pointer" href="https://github.com/wiredoor/wiredoor-cli">wiredoor-cli</a>
+          <a class="text-blue-500 hover:underline cursor-pointer" target="_blank" href="https://github.com/wiredoor/wiredoor-cli">wiredoor-cli</a>
           tool with your unique token:
         </p>
 
@@ -70,7 +70,7 @@ const copyCommand = async () => {
             :entries="[
               {
                 command: 'wiredoor connect',
-                flags: [`--url=https://${publicUrl}`, '--token=XXXXXXXX'],
+                flags: [`--url=${publicUrl}`, '--token=SECRET'],
                 results: ['Configuring wiredoor...', 'Connecting node...', 'Connection established!'],
                 copy: true,
               },
