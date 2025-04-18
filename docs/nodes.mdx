@@ -1,12 +1,40 @@
 # Nodes in Wiredoor
 
-**Nodes** are the clients that connect to the Wiredoor Server via a secure WireGuard tunnel. They represent the entry point for exposing services that live inside private networks, devices, or environments that are not directly reachable from the internet.
+**Nodes** are components that allow you to expose services to the internet through the Wiredoor Server. They represent the entry point for exposing services that live inside private networks, devices, or environments that are not directly reachable from the internet. There are three types of nodes in Wiredoor, each serving a different purpose:
 
-This document explains how nodes work, how to connect them, and the difference between a regular node and a gateway node.
+- **Local Node**: Default special node that Exposes services running on the same server as Wiredoor, without creating a VPN tunnel.
+- **Client Node**: Connects via a secure WireGuard tunnel and exposes services from remote devices.
+- **Gateway Node**: Acts as a site-to-site VPN, routing traffic to entire subnets behind the node.
+
+This document explains how each node type works, how to connect them, and how to manage them in the Web UI.
 
 ---
 
-## What is a Node?
+## Local Node
+
+The **Local Node** is automatically created when the Wiredoor Server is installed. It does not use a WireGuard tunnel and **cannot be deleted or updated**.
+
+It's designed to expose services running directly on the Wiredoor host machine through secure NGINX reverse proxy rules with SSL including the Wiredoor dashboard itself.
+
+### Key Features
+
+- Cannot be deleted
+- Managed through the Web UI to expose local server services
+- Supports custom domain and Let's Encrypt for Wiredoor dashboard
+
+### Example Use Cases
+
+| Service            | Description                                                                            |
+| ------------------ | -------------------------------------------------------------------------------------- |
+| Wiredoor Dashboard | Assign a domain and SSL to access your admin panel securely                            |
+| Local Docker Apps  | Add containers to wiredoor docker-compose stack and expose those apps through wiredoor |
+
+---
+
+## Client Node
+
+A Client Node connects to the Wiredoor Server via a secure WireGuard tunnel and allows services to be exposed from private devices.
+These are the default type of nodes created from the Wiredoor dashboard unless explicitly specified as Gateway.
 
 When you create a node in Wiredoor:
 
@@ -59,20 +87,9 @@ This gives you a working VPN tunnel between your node and Wiredoor.
 
 ---
 
-## Node Lifecycle
+## Gateway Node
 
-Each node can be:
-
-- 🟢 **Connected** — VPN tunnel is active and services can be exposed
-- 🔴 **Disconnected** — VPN tunnel is disabled, services are not reachable
-- ♻️ **Regenerated** — You can reset the WireGuard config and rotate the API token at any time
-- 🗑️ **Deleted** — Permanently removes the node and all associated config
-
----
-
-## What is a Gateway Node?
-
-A **Gateway Node** is a special type of node that acts like a site-to-site VPN bridge.
+A **Gateway Node** is a special type of node that acts like a site-to-site VPN bridge. Instead of only exposing services on the node itself, it forwards traffic to any IP in its local subnet.
 
 ```mermaid
 flowchart LR
@@ -90,17 +107,30 @@ flowchart LR
   gateway <--> |Traffic| clients
 ```
 
-Instead of only exposing services running on the node itself, a Gateway Node can:
+### Key Features
 
 - Forward traffic to **any host** in its local subnet (e.g. `192.168.1.100`)
 - Allow Wiredoor to route external traffic to **multiple internal devices**, not just the node
 
-> This is ideal for exposing:
-> - Devices without WireGuard support (e.g. IoT, PLCs, cameras)
-> - Services running on other LAN servers or virtual machines
-> - Kubernetes or Docker networks
+### Use cases
 
-You can define allowed subnets when creating or editing a gateway node.
+- Expose devices without WireGuard support (e.g. IoT, PLCs, cameras, printers)
+- Access services running on other servers behind the same router
+- Tunnel into Kubernetes or Docker networks
+
+When creating or editing a gateway node, you can define which subnets it can route traffic to.
+
+---
+
+## Node Lifecycle
+
+Each node (except the Local Node) can be:
+
+- 🟢 **Connected** — VPN tunnel is active and services can be exposed
+- 🟠 **Idle** — Tunnel is up, but the Wiredoor server cannot reach the node (e.g., ping fails or ICMP is blocked by a firewall)
+- 🔴 **Disconnected** — VPN tunnel is disabled, services are not reachable
+- ♻️ **Regenerated** — You can reset the WireGuard config and rotate the API token at any time
+- 🗑️ **Deleted** — Permanently removes the node and all associated config
 
 ---
 
@@ -108,25 +138,26 @@ You can define allowed subnets when creating or editing a gateway node.
 
 From the Web UI, you can:
 
-- Download the WireGuard config
+- View and manage node status
+- Download the WireGuard config (for client/gateway)
 - View or regenerate the API token
 - Connect or disconnect the node
-- Reset WireGuard config and rotate the API token
+- View services currently exposed
+- Expose or disable HTTP/TCP services
 - View its VPN IP and connection status
-- Expose/Disable services
-- See which services are currently exposed
+- Configure domain and SSL
 
 ---
 
 ## Example Use Cases
 
-| Use Case | Node Type | Description |
-|----------|-----------|-------------|
-| Exposing a local dev server | Standard Node | VPN tunnel from a laptop or VM |
-| Self-hosted dashboard on a NAS | Standard Node | Tunnel directly from the NAS device |
-| Accessing an entire factory LAN | Gateway Node | Route to multiple devices behind a router |
-| Publishing Kubernetes services | Gateway Node | Use Helm chart to tunnel from inside the cluster |
-| Headless IoT Device | Gateway Node | Expose a device that cannot run WireGuard directly (via another node on the same LAN) |
+| Use Case                        | Node Type     | Description                                                                           |
+| ------------------------------- | ------------- | ------------------------------------------------------------------------------------- |
+| Exposing a local dev server     | Standard Node | VPN tunnel from a laptop or VM                                                        |
+| Self-hosted dashboard on a NAS  | Standard Node | Tunnel directly from the NAS device                                                   |
+| Accessing an entire factory LAN | Gateway Node  | Route to multiple devices behind a router                                             |
+| Publishing Kubernetes services  | Gateway Node  | Use Helm chart to tunnel from inside the cluster                                      |
+| Headless IoT Device             | Gateway Node  | Expose a device that cannot run WireGuard directly (via another node on the same LAN) |
 
 ---
 
@@ -135,4 +166,3 @@ From the Web UI, you can:
 - Use [`wiredoor-cli`](./cli) to connect and expose services
 - [Expose services](./usage) from your connected nodes
 - Deploy a [Docker Gateway](./docker-gateway) or [Kubernetes Gateway](./kubernetes-gateway)
-
