@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import SvgIcon from '@/components/SvgIcon'
 import DataTable, { type ColumnDef, type Empty } from '@/components/ui/table/DataTable.vue'
 import DropDown from '../ui/dropdown/DropDown.vue'
@@ -12,6 +12,7 @@ import { useServiceActions } from '@/composables/services/useServiceActions'
 import { useHttpServiceForm } from '@/composables/services/useHttpServiceForm'
 
 const route = useRoute()
+const router = useRouter()
 
 const { openServiceInfo } = useServiceInfo()
 const { openHttpServiceForm } = useHttpServiceForm()
@@ -176,7 +177,7 @@ const editService = (service: HttpService) => {
                     <span>Logs Monitor</span>
                   </router-link>
                 </li>
-                <li>
+                <li v-if="props.node">
                   <a
                     class="font-medium text-sm flex items-center py-1 px-3 hover:bg-gray-100 hover:dark:bg-gray-700"
                     :href="`/services/${row.id}/edit`"
@@ -189,6 +190,21 @@ const editService = (service: HttpService) => {
                   >
                     <SvgIcon name="edit" class="w-4 h-4 shrink-0 mr-2" />
                     <span>Edit Service</span>
+                  </a>
+                </li>
+                <li v-else>
+                  <a
+                    class="font-medium text-sm flex items-center py-1 px-3 hover:bg-gray-100 hover:dark:bg-gray-700"
+                    :href="`/nodes/${row.nodeId}`"
+                    @click.prevent="
+                      () => {
+                        router.push({ name: 'node', params: { id: `${row.nodeId}` } })
+                        close()
+                      }
+                    "
+                  >
+                    <SvgIcon name="switch" class="w-4 h-4 shrink-0 mr-2" />
+                    <span>Go to node</span>
                   </a>
                 </li>
                 <hr class="border-gray-200 dark:border-gray-600" />
