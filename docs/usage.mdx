@@ -1,109 +1,236 @@
-# Using Wiredoor
+import { Callout } from 'nextra/components'
 
-Once Wiredoor Server is installed and running, you can start using the **Web UI** to configure domains, manage nodes, and expose services.
+# Usage
 
-This guide walks you through the most common tasks you'll perform with Wiredoor.
+Once Wiredoor Server is installed and running, you can start using the **Web UI** and the **Wiredoor CLI** to:
+
+- Configure domains  
+- Register and manage nodes  
+- Expose internal services to the internet
+
+This guide walks you through the most common tasks in a logical order.
 
 ---
 
 ## Domains
 
-Domains are used to route traffic to your exposed services.
+Domains define how traffic is routed from the public internet into your internal services.
 
 ### Public Domains (Recommended)
 
-- Should point to your Wiredoor server's public IP (use an A or CNAME DNS record)
-- Enable automatic SSL certificates via Let's Encrypt
-- Can be used to expose HTTP, TCP, or UDP services
+- Must point to your Wiredoor server's public IP (via A/CNAME DNS record)
+- Automatically get SSL certificates via Let’s Encrypt
+- Ideal for production and public access
 
 ### Internal or Local Domains
 
-- Can be added even without a public DNS record (e.g. `local.service`, `test.app`)
-- Will use **self-signed SSL certificates**
-- Still support service exposure but will show browser warnings unless trusted
+- Do not require DNS registration (e.g. `dashboard.lan`, `test.internal`)
+- Use self-signed certificates
+- May trigger browser warnings unless trusted
 
-> ✅ **Tip:** You can register as many domains as needed and map multiple services to each.
+<Callout type="info" emoji="💡">
+  You can register as many domains as needed and map multiple services to each.
+</Callout>
 
 ---
 
-## Nodes
+## Understanding Nodes
 
-Nodes represent systems that connect to Wiredoor via WireGuard (clients or gateways).
+**Nodes** are devices or systems that expose services to Wiredoor.  
+Most nodes establish a connection to the Wiredoor Server over a **WireGuard VPN tunnel** — with one exception: the **Local Node**.
 
-When you create a node, Wiredoor will:
+### Types of Nodes
 
-- Generate a unique **WireGuard peer config**
-- Assign a static **VPN IP**
-- Create an **API token** to use with `wiredoor-cli`
+| Type             | Description |
+|------------------|-------------|
+| **Local Node**   | Runs on the same server as Wiredoor. It **does not use a WireGuard tunnel** and is used to expose services hosted directly on the Wiredoor server itself. |
+| **Client Node**  | A remote system that connects to Wiredoor using a secure WireGuard tunnel and exposes services from that machine only. |
+| **Gateway Node** | A remote system that acts as a site-to-site VPN, forwarding traffic for an entire subnet or container network. |
 
-You can:
+### Local Node
 
-- 🔄 Connect or disconnect a node from the UI
-- 🔓 Expose or hide services at any time
-- ⚙️ Configure a node as a **Gateway** to route traffic to its entire local subnet
+It's designed to expose services running directly on the Wiredoor host machine through secure NGINX reverse proxy rules with SSL including the Wiredoor dashboard itself.
 
-### Gateway Nodes
+```mermaid
+flowchart LR
+  public[(Internet)]
+  subgraph Wiredoor Server
+    wiredoor
+    clients@{ shape: procs, label: "Other services"}
+  end
 
-If a node is marked as a **Gateway**, it acts like a site-to-site VPN. This means you can expose services from **any host** on the local network behind that node.
+  public <--> |Traffic over SSL| wiredoor
+  wiredoor <--> |Traffic| clients
+```
 
-Use cases:
-- Exposing devices on a LAN (IoT, cameras, servers)
-- Bridging private Kubernetes clusters or Docker containers
-- Accessing legacy infrastructure without deploying agents everywhere
+#### Key Features
+
+- Cannot be deleted
+- Managed through the Web UI to expose local server services
+- Supports custom domain and Let's Encrypt for Wiredoor dashboard
+
+#### Example Use Cases
+
+| Service | Description |
+|---------|-------------|
+| Wiredoor Dashboard | Assign a domain and SSL to access your admin panel securely |
+| Local Docker Apps | Add containers to wiredoor docker-compose stack and expose those apps through wiredoor |
+
+<Callout type="warning" emoji="⚠️">
+  The Local Node is created automatically and **cannot be deleted or updated**.
+</Callout>
+
+### Client Node
+
+A Client Node connects to the Wiredoor Server via a secure WireGuard tunnel and allows services to be exposed from private devices. 
+These are the default type of nodes created from the Wiredoor dashboard unless explicitly specified as Gateway.
+
+When you create a node in Wiredoor:
+
+- A **WireGuard peer** is generated with a unique private key and assigned a static VPN IP (e.g. `10.12.1.3`).
+- A **configuration file** is created, compatible with the official WireGuard client.
+- An **API token** is issued, allowing the node to interact with Wiredoor using `wiredoor-cli`.
+
+Once connected, the node can securely send and receive traffic through the Wiredoor Server.
+
+```mermaid
+flowchart LR
+  public[(Internet)]
+  wiredoor(Wiredoor Server)
+  subgraph Private network
+    clients@{ shape: procs, label: "Client Servers Nodes"}
+  end
+
+  public <--> |Traffic over SSL| wiredoor
+  wiredoor <--> |Traffic| clients
+  clients ==> |Tunnel| wiredoor
+```
+
+### Gateway Node
+
+A **Gateway Node** is a special type of node that acts like a site-to-site VPN bridge. Instead of only exposing services on the node itself, it forwards traffic to any IP in its local subnet.
+
+```mermaid
+flowchart LR
+  public[(Internet)]
+  wiredoor(Wiredoor Server)
+  subgraph Private network
+    direction RL
+    gateway[Gateway Server]
+    clients@{ shape: procs, label: "Servers"}
+  end
+
+  public -- Traffic -->
+  wiredoor <-- Traffic -->
+  gateway ==> |Tunnel| wiredoor
+  gateway <--> |Traffic| clients
+```
+
+### Key Features
+
+- Forward traffic to **any host** in its local subnet (e.g. `192.168.1.100`)
+- Allow Wiredoor to route external traffic to **multiple internal devices**, not just the node
+
+### Use cases
+
+- Expose devices without WireGuard support (e.g. IoT, PLCs, cameras, printers)
+- Access services running on other servers behind the same router
+- Tunnel into Kubernetes or Docker networks
+
+When creating or editing a gateway node, you can define which subnets it can route traffic to.
+
+---
+
+## Managing Nodes (UI and CLI)
+
+You can manage nodes via:
+
+- **Web UI** → Go to the **Nodes** tab to create or delete nodes.
+- **CLI** → Install the CLI on the node you want to register.
+
+### Node Lifecycle
+
+Each node (except the Local Node) can be:
+
+- 🟢 **Connected** — VPN tunnel is active and services can be exposed
+- 🟠 **Idle** — Tunnel is up, but the Wiredoor server cannot reach the node (e.g., ping fails or ICMP is blocked by a firewall)
+- 🔴 **Disconnected** — VPN tunnel is disabled, services are not reachable
+
+### Register a node via CLI:
+
+```bash
+wiredoor login --url https://your-wiredoor-ip-or-domain
+```
+
+This will prompt for:
+
+- Admin credentials (email and password)
+- Node Name (default: current hostname)
+- Whether the node acts as a gateway
+- Whether to route internet traffic (default: no)
 
 ---
 
 ## Exposing Services
 
-Once a node is connected, you can expose services to the outside world.
+Once your node is connected, you can expose services either via the **Web UI** or the **CLI**.
 
-### Types of Services
+### Using CLI to expose HTTP Services
 
-| Type | Description |
-|------|-------------|
-| **HTTP** | Standard web services (APIs, dashboards, UIs, etc.) |
-| **TCP** | Custom services (databases, SSH, etc.) |
-| **UDP** | Lightweight protocols (VoIP, game servers, etc.) |
+```bash
+wiredoor http myapp --domain app.your.domain.com --port 3000
+```
 
-You define:
+<Callout type="warning" emoji="⚠️">
+  Make sure the domain used (e.g. `app.your.domain.com`) points to your Wiredoor server's public IP.
+</Callout>
 
-- The **protocol** (HTTP, TCP, UDP)
-- The **port** on the internal node or gateway
-- The **domain name** and optionally a route/path
-- Optional **IP/CIDR restrictions** for access control
+Options:
 
-Wiredoor handles:
+- `--path /subpath` — optional path to expose
+- `--proto https` — use HTTPS to talk to backend (default: http)
+- `--backendHost` — required if exposing from a gateway node
+- `--allow` / `--block` — restrict access by IP or subnet
 
-- Routing traffic to the right node/service
-- Terminating SSL (Let’s Encrypt or self-signed)
-- Keeping the VPN tunnel alive
+### Using the CLI to expose TCP/UDP services
 
----
+```bash
+wiredoor tcp ssh-access --port 22
+```
 
-## Certificates
+Options:
 
-Wiredoor automatically provisions and renews SSL certificates using Let's Encrypt **if the domain is publicly resolvable**.
+- `--proto tcp|udp`
+- `--ssl` — wrap traffic in TLS
+- `--allowedIps` — allow list for security
 
-If not:
+## Monitor Access Logs (per domain or service)
 
-- A **self-signed certificate** will be generated instead
-- Your browser may show a warning unless the cert is trusted
+Wiredoor allows you to monitor real-time access logs for each exposed service or domain.
 
-You can check certificate status and renewal from the Domains section.
+### 🔎 From the Web UI
 
----
+1. Go to the **Domains** or **Nodes** menu, If node select a node to see details and services.
+2. Click the more button next to the domain or service you want to inspect and select **Logs Monitor**.
+3. You'll see a live stream of incoming requests, including:
+  - Timestamp
+  - Client IP
+  - Requested path
+  - HTTP method and status code (for HTTP services)
 
-## Example Use Cases
+<Callout type="info" emoji="💡">
+  Logs can be used for debugging, auditing, or simply understanding traffic patterns.
+</Callout>
 
-- Expose a local `Node-RED` instance running on a Raspberry Pi
-- Publish a private Grafana dashboard from an on-prem server
-- Access your Kubernetes API server remotely using the Gateway chart
-- Route traffic to an internal device like a camera or PLC
+### From the host system (optional)
+
+If you mounted the NGINX log directory (`./wiredoor-logs`) when deploying Wiredoor, you can also watch logs from the terminal:
+
+tail -f wiredoor-logs/app.your.domain.com/access.log
 
 ---
 
 ## Next Steps
 
-- Learn how to [connect your first node](./nodes.md)
-- Use [`wiredoor-cli`](./cli.md) for automation and scripting
+- [CLI Reference](./cli.md)
 - Deploy a [Docker Gateway](./docker-gateway.md) or [Kubernetes Gateway](./kubernetes-gateway.md)
