@@ -118,7 +118,7 @@ This will:
 
 ---
 
-## Expose your first
+## Expose your first service
 
 If you have a service running locally (e.g. on port 3000), you can expose it:
 
