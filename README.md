@@ -39,7 +39,15 @@ It uses reverse VPN connections powered by [WireGuard](https://www.wireguard.com
 
 ---
 
-## 🚀 Quick Start (Docker) with Docker Compose
+## Quickstart
+
+**Wiredoor Server is the entry point for all external traffic.**  
+This means that the server's public IP address or domain **must be accessible from the internet**,  
+or at least from the network where you want to access the exposed services.
+
+Wiredoor is designed to run on a publicly reachable host so it can securely receive inbound traffic and forward it to your internal services over a private VPN tunnel.
+
+This guide will help you get Wiredoor running and expose your first private service to the internet in just a few steps.
 
 ### Requirements
 
@@ -48,107 +56,90 @@ It uses reverse VPN connections powered by [WireGuard](https://www.wireguard.com
 - Open ports: `80`, `443`, and a UDP port for the VPN (default `51820`)
 - Optional: Port range for exposing TCP services (e.g. `32760-32767`)
 
-### Project structure
+## Deploy Wiredoor Server to your remote server
+
+### Clone Wiredoor Docker Setup
 
 ```bash
-wiredoor/
-├── wiredoor-data/
-├── wiredoor-certbot/
-├── wiredoor-logs/
-├── docker-compose.yml
-├── .env
+git clone https://github.com/wiredoor/docker-setup.git
+cd docker-setup
 ```
 
-### Prepare persistent directories
+### Configure environment variables
 
-Wiredoor requires persistent directories to store configuration files, WireGuard keys, and SSL certificates.
-
-Create the necessary folders and ensure proper permissions:
-
-```bash copy
-mkdir -p ./{wiredoor-data,wiredoor-certbot,wiredoor-logs} && chown -R 1000:1000 ./{wiredoor-data,wiredoor-certbot,wiredoor-logs}
+```bash
+cp .env.example .env
+nano .env
 ```
 
-### Config Environment variables in `.env`
+Set your admin email, password, VPN public hostname or IP, and optionally, the TCP port range.
+If you modify the TCP port range, make sure to update the `ports:` section in `docker-compose.yml`.
 
-Create a `.env` file at the root of the project to configure **Wiredoor** securely and flexibly, without hardcoding sensitive data into your `docker-compose.yml`.
-
-```dotenv filename=".env" copy
-# Wiredoor admin credentials
-ADMIN_EMAIL=admin@example.com           # Required. Also used by certbot if SSL is enabled
-ADMIN_PASSWORD=ChangeMe1st!             # Required. Use a secure password
-
-# VPN Information
-VPN_HOST=public_host_or_ip              # Required. Public address that clients will connect to
-VPN_PORT=51820                          # Default WireGuard UDP port
-VPN_SUBNET=10.0.0.0/24                  # Subnet for clients (in CIDR format)
-
-# TCP Port range
-TCP_SERVICES_PORT_RANGE=32760-32767     # Optional. Port range to expose TCP/UDP services
-
-# TCP/UDP Exposure (Public Port Range)
-TZ=America/New_York                     # Time zone (recommended for logging)
-```
-
-Check the [configuration documentation](https://www.wiredoor.net/docs/configuration#environment-variables) for a full list of supported environment variables.
-
-### Sample docker-compose.yml
-
-`docker-compose.yml`
-
-```yaml
-services:
-  wiredoor:
-    image: ghcr.io/wiredoor/wiredoor:latest
-    container_name: wiredoor
-    cap_add:
-      - NET_ADMIN
-    env_file:
-      - .env
-    restart: unless-stopped
-    volumes:
-      - ~/wiredoor-data:/data
-      - ~/wiredoor-certbot:/etc/letsencrypt
-      # - ~/wiredoor-logs:/var/log/nginx        # <--- Optional: Mount for collecting NGINX logs
-    ports:
-      - 80:80/tcp
-      - 443:443/tcp
-      - 51820:51820/udp # Must match with VPN_PORT in .env
-    #      - 32760-32767                            # Must match with TCP_SERVICES_PORT_RANGE in .env
-    sysctls:
-      - net.ipv4.ip_forward=1
-```
-
-### Run it
+### Start Wiredoor Server
 
 ```bash
 docker compose up -d
 ```
 
-Once the service is running, visit: [https://<YOUR_PUBLIC_IP_OR_DOMAIN>]()
+### Log in to the Wiredoor web UI
 
-Login using the provided credentials in the environemnt variables.
+In your browser, Navigate to `https://your_wiredoor_domain_or_ip`. Use the admin credentials from your `.env` file to access the dashboard.
 
-## How It Works
+For more information on using the web UI, visit the [Usage Guide](https://www.wiredoor.net/docs/usage)
 
-- Register a domain(local or public) pointing to wiredoor server.
-- Nodes / Clients connect to Wiredoor through a secure VPN tunnel.
-- Wiredoor exposes your internal service via domain/port configuration.
-- Incoming traffic is routed securely and automatically encrypted.
+---
 
-### Client integrations
+## Configure Wiredoor CLI on your private node
 
-- ✅ [Wiredoor CLI](https://www.wiredoor.net/docs/cli): Manage connection, expose services, get logs, etc.
+### Install Wiredoor CLI
+
+You can use the auto-installer:
+
+```bash
+curl -s https://www.wiredoor.net/install-wiredoor-cli.sh | sh
+```
+
+Or download a package from [GitHub Releases](https://github.com/wiredoor/wiredoor-cli/releases).
+
+### Login and register node using `wiredoor-cli`
+
+Run the following on the device you want to connect:
+
+```bash
+wiredoor login --url=https://your_deployed_wiredoor_domain_or_ip
+```
+
+This will:
+
+- Promp for admin credentials (email and password)
+- Ask for a name for the node (default: current hostname)
+- Register the node in the server
+- Connect it automatically via WireGuard
+
+---
+
+## Expose your first service
+
+If you have a service running locally (e.g. on port 3000), you can expose it:
+
+```bash
+wiredoor http myapp --domain app.your.domain.com --port 3000
+```
+
+⚠️ The domain `app.your.domain.com` must point to the public Wiredoor server's IP address.
+
+### Other integrations
+
 - ✅ [Docker Gateway](https://www.wiredoor.net/docs/docker-gateway): Lightweight sidecar container to expose services in Compose environments.
 - ✅ [Kubernetes Gateway Chart](https://www.wiredoor.net/docs/kubernetes-gateway): Helm chart to expose any service inside your Kubernetes cluster.
 
-### Domains & Certificates
+## Domains & Certificates
 
 - Supports public domains with Let's Encrypt SSL.
 - Also works with local/internal domains using self-signed certificates.
 - Automatically handles renewal and configuration.
 
-### Use Cases
+## Use Cases
 
 - Expose internal apps without opening firewall ports
 - Access Kubernetes dashboards securely from the outside

@@ -25,7 +25,7 @@ This guide outlines how Wiredoor keeps your services secure and what practices y
 
 Each node (including CLI clients and gateways) uses a **unique access token** that identifies it and scopes its permissions.
 
-### Best practices:
+### Best practices
 
 - Store tokens securely (e.g., `config.ini`, Kubernetes Secrets).
 - Never hardcode tokens into public repositories.
@@ -43,7 +43,7 @@ Wiredoor handles SSL certificates in two modes:
 | Let's Encrypt | Used when exposing services on a **valid public domain** |
 | Self-signed   | Used for **internal domains** or IP-based access         |
 
-### Tips:
+### Tips
 
 - Use valid DNS records (A or CNAME) pointing to your Wiredoor Server for public domains
 - For production-grade services, always prefer Let's Encrypt over self-signed certs

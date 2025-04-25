@@ -5,40 +5,7 @@ This page describes all available configuration options.
 
 ---
 
-<<<<<<< Updated upstream
-## Environment Variables
-
-You can define your environment variables in a `.env` file and reference them in your `docker-compose.yml` like this:
-
-```dotenv filename=".env" copy
-# Wiredoor admin credentials
-ADMIN_EMAIL=admin@example.com           # Required. Also used by certbot if SSL is enabled
-ADMIN_PASSWORD=ChangeMe1st!             # Required. Use a secure password
-
-# VPN Information
-VPN_HOST=public_host_or_ip              # Required. Public address that clients will connect to
-VPN_PORT=51820                          # Default WireGuard UDP port
-VPN_SUBNET=10.0.0.0/24                  # Subnet for clients (in CIDR format)
-
-# TCP Port range
-TCP_SERVICES_PORT_RANGE=32760-32767     # Optional. Port range to expose TCP/UDP services
-
-# TCP/UDP Exposure (Public Port Range)
-TZ=America/New_York                     # Time zone (recommended for logging)
-```
-
-In your `docker-compose.yml`
-
-```yaml filename="docker-compose.yml" copy
-env_file:
-  - .env
-```
-
-
-### Advanced Environment Variables
-=======
 ## Advanced Environment Variables
->>>>>>> Stashed changes
 
 | Variable | Description | Required | Example |
 |----------|-------------|----------|---------|
