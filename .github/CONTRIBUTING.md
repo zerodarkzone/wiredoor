@@ -23,7 +23,7 @@ git clone https://github.com/wirdoor/wiredoor.git
 cd wiredoor
 ```
 
-Install any dependencies, depending on the component (server/, ui/).
+Open project with Dev Container and Install any dependencies, depending on the component (./, frontend/).
 
 ### 2. Open an Issue First
 
@@ -38,7 +38,7 @@ That helps us maintain project direction and avoid duplicate work.
 ### 3. Style Guidelines
 
 - **Server:** Node.js/TypeScript (follow project's ESLint/Prettier rules)
-- **UI:** Vue.js/TypeScript (follow project's ESLint/Prettier rules)
+- **Frontend:** Vue.js/TypeScript (follow project's ESLint/Prettier rules)
 - **Docs:** Use MDX following [Nextra Guidelines](https://nextra.site/docs/guide/markdown)
 - Keep PRs small and focused
 
