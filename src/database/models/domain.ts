@@ -18,6 +18,10 @@ export interface SSLCerts {
   privkey: string;
 }
 
+export interface Oauth2ProxyConfig {
+  allowedEmails: string[];
+}
+
 @Entity('domains')
 export class Domain {
   @PrimaryGeneratedColumn()
@@ -44,6 +48,18 @@ export class Domain {
     default: false,
   })
   skipValidation: boolean;
+
+  @Column({
+    nullable: true,
+    unique: true,
+  })
+  oauth2ServicePort: number;
+
+  @Column({
+    type: 'json',
+    nullable: true,
+  })
+  oauth2Config: Oauth2ProxyConfig;
 
   @CreateDateColumn()
   //@CreateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP(6)" })
