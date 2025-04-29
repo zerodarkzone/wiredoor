@@ -39,6 +39,13 @@ COPY --chown=node:node . .
 
 FROM base AS build
 
+ARG OAUTH2PROXY_VERSION="7.9.0"
+
+RUN apk add --update curl \
+  && curl -sL https://github.com/oauth2-proxy/oauth2-proxy/releases/download/v${OAUTH2PROXY_VERSION}/oauth2-proxy-v${OAUTH2PROXY_VERSION}.linux-amd64.tar.gz -o /tmp/oauth2-proxy.tar.gz \
+  && tar -xzf /tmp/oauth2-proxy.tar.gz \
+  && mv ./oauth2-proxy-v${OAUTH2PROXY_VERSION}.linux-amd64/oauth2-proxy /usr/bin/oauth2-proxy
+
 COPY --chown=node:node package*.json ./
 
 COPY --chown=node:node --from=development /app/node_modules ./node_modules
@@ -63,6 +70,7 @@ RUN npm run build
 
 FROM base AS production
 
+COPY --from=build /usr/bin/oauth2-proxy /usr/bin/oauth2-proxy
 COPY --chown=node:node --from=build /app/node_modules /app/node_modules
 COPY --chown=node:node --from=build /app/dist /app/dist
 COPY --chown=node:node --from=uibuild /app/dist /app/dist/public
