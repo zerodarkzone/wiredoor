@@ -63,11 +63,14 @@ export const domainValidator: ObjectSchema<DomainType> = Joi.object({
     then: Joi.valid('self-signed').allow(null).optional(),
     otherwise: Joi.valid('self-signed', 'certbot').allow(null).optional(),
   }),
-  enableOauth2: Joi.boolean().optional(),
-  allowedEmails: Joi.string().when('enableOauth2', {
+  authentication: Joi.boolean().optional(),
+  allowedEmails: Joi.when('authentication', {
     is: true,
-    then: Joi.valid(null).allow(null).optional(),
-    otherwise: Joi.valid('self-signed', 'certbot').allow(null).optional(),
+    then: Joi.valid(null, []).allow(null).optional(),
+    otherwise: Joi.array()
+      .items(Joi.string().email().optional())
+      .allow(null)
+      .optional(),
   }),
   skipValidation: Joi.boolean().optional(),
 });
