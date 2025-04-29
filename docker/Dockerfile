@@ -2,6 +2,8 @@ FROM node:20-alpine3.21 AS base
 
 WORKDIR /app
 
+ARG VERSION=1.0.0
+
 ENV TZ=America/New_York
 
 RUN apk add --update \
@@ -69,6 +71,14 @@ COPY --chown=node:node frontend/. .
 RUN npm run build
 
 FROM base AS production
+
+LABEL org.opencontainers.image.licenses=MIT \
+      org.opencontainers.image.description="Self hosted ingress-as-a-service platform that allows you to expose applications and services running in private or local networks to the internet" \
+      org.opencontainers.image.documentation=https://www.wiredoor.net/docs \
+      org.opencontainers.image.source=https://github.com/wiredoor/wiredoor \
+      org.opencontainers.image.url=https://ghcr.io/wiredoor/wiredoor \
+      org.opencontainers.image.title=wiredoor \
+      org.opencontainers.image.version=${VERSION}
 
 COPY --from=build /usr/bin/oauth2-proxy /usr/bin/oauth2-proxy
 COPY --chown=node:node --from=build /app/node_modules /app/node_modules
