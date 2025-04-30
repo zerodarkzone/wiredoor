@@ -99,7 +99,6 @@ export class HttpServicesService extends BaseServices {
 
     if (old.node.isLocal && old.backendHost === '127.0.0.1') {
       params = {
-        name: params.domain,
         domain: params.domain,
         allowedIps: params.allowedIps,
         blockedIps: params.blockedIps,
