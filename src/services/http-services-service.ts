@@ -97,7 +97,7 @@ export class HttpServicesService extends BaseServices {
   ): Promise<HttpService> {
     const old = await this.getHttpService(id, ['node']);
 
-    if (old.node.isLocal && old.backendHost === 'localhost') {
+    if (old.node.isLocal && old.backendHost === '127.0.0.1') {
       params = {
         name: params.domain,
         domain: params.domain,
@@ -157,7 +157,7 @@ export class HttpServicesService extends BaseServices {
   public async deleteHttpService(id: number): Promise<string> {
     const httpService = await this.getHttpService(id, ['node']);
 
-    if (httpService.node.isLocal && httpService.backendHost === 'localhost') {
+    if (httpService.node.isLocal && httpService.backendHost === '127.0.0.1') {
       throw new BadRequestError(`Wiredoor APP can't be deleted`);
     }
 
