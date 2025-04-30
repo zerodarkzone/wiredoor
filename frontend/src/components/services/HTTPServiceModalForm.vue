@@ -87,7 +87,7 @@ const {
             description="Define the public path where the service will be available (e.g., /api). The combination of Public Domain + Public Path must be unique."
             :errors="errors"
             :tabindex="2"
-            :disabled="(node?.isLocal && formData.backendHost === 'localhost')"
+            :disabled="(node?.isLocal && formData.backendHost === '127.0.0.1')"
           />
         </div>
         <div>
@@ -125,7 +125,7 @@ const {
                     { label: 'http://', value: 'http' },
                     { label: 'https://', value: 'https' },
                   ]"
-                  :disabled="(node?.isLocal && formData.backendHost === 'localhost')"
+                  :disabled="(node?.isLocal && formData.backendHost === '127.0.0.1')"
                   :tabindex="4"
                 />
               </div>
@@ -134,7 +134,7 @@ const {
                   v-model="formData.backendHost"
                   field="backendHost"
                   placeholder="host/ip"
-                  :disabled="!(node?.isGateway || node?.isLocal) || (node?.isLocal && formData.backendHost === 'localhost')"
+                  :disabled="!(node?.isGateway || node?.isLocal) || (node?.isLocal && formData.backendHost === '127.0.0.1')"
                   :tabindex="5"
                 />
               </div>
@@ -151,7 +151,7 @@ const {
             description="Specify the port where the service is running on the specified hostname or node (e.g., 8080)."
             :errors="errors"
             :tabindex="6"
-            :disabled="(node?.isLocal && formData.backendHost === 'localhost')"
+            :disabled="(node?.isLocal && formData.backendHost === '127.0.0.1')"
             required
             @input="(e) => validateField('backendPort')"
           />
