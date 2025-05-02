@@ -131,10 +131,24 @@ export class DomainsService {
       );
     }
 
+    let oauth2ServicePort = null;
+    let oauth2Config: Oauth2ProxyConfig = null;
+
+    if (params.authentication) {
+      if (!old.oauth2ServicePort) {
+        oauth2ServicePort = await this.domainRepository.getAvailablePort();
+      }
+      oauth2Config = {
+        allowedEmails: params.allowedEmails,
+      };
+    }
+
     await this.domainRepository.save({
       id,
       ...params,
       sslPair,
+      oauth2ServicePort,
+      oauth2Config,
     });
 
     const domain = await this.getDomain(id);

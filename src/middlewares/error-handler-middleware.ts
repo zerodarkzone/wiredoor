@@ -25,10 +25,12 @@ export function errorHandlerMiddleware(
           .map((f) => f.split('.').pop()?.trim() || '');
         return res.status(422).send({
           message: 'Validation failed',
-          errors: fields.map((f) => ({
-            field: f,
-            message: `Record already exists with the same value in ${fields.join(', ')}`,
-          })),
+          errors: {
+            body: fields.map((f) => ({
+              field: f,
+              message: `Record already exists with the same value in ${fields.join(', ')}`,
+            })),
+          },
         });
       }
     }

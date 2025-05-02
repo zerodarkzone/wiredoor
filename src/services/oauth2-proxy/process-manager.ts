@@ -13,7 +13,7 @@ const getGeneratedKey = (domain: string): string => {
     if (fs.existsSync(filePath)) {
       return fs.readFileSync(filePath, 'utf-8').trim();
     }
-    const newKey = randomBytes(64).toString('base64').substring(0, 31);
+    const newKey = randomBytes(64).toString('base64').substring(0, 32);
 
     fs.writeFileSync(filePath, newKey, { mode: 0o600 });
     return newKey;
@@ -31,6 +31,7 @@ export class ProcessManager {
     const secret = getGeneratedKey(domain.domain);
 
     fs.mkdirSync('/opt/oauth2-proxy', { recursive: true });
+    fs.mkdirSync(`${config.nginx.logs}/${domain.domain}`, { recursive: true });
     fs.writeFileSync(
       `/opt/oauth2-proxy/${domain.domain}-emails`,
       domain.oauth2Config.allowedEmails.join('\n'),
@@ -39,7 +40,7 @@ export class ProcessManager {
 
     const processFile = `[program:oauth2-proxy-d${domain.id}]
 command=sh -c 'source /etc/environment && /usr/bin/oauth2-proxy'
-environment
+environment=
   OAUTH2_PROXY_HTTP_ADDRESS="127.0.0.1:${domain.oauth2ServicePort}",
   OAUTH2_PROXY_COOKIE_DOMAINS="${domain.domain}",
   OAUTH2_PROXY_COOKIE_SECRET="${secret}",
@@ -67,14 +68,14 @@ stderr_logfile=${config.nginx.logs}/${domain.domain}/oauth2-proxy.stderr.log`;
 
   static async removeOauthProcess(
     domain: Domain,
-    restart: boolean = false,
+    restart: boolean = true,
   ): Promise<void> {
     await Promise.all([
       FileManager.removeFile(
         `/etc/supervisor/conf.d/oauth2-proxy-d${domain.id}.conf`,
       ),
       FileManager.removeFile(`/opt/oauth2-proxy/${domain.domain}-emails`),
-      FileManager.removeFile(`/data/oauth2/.cookie-secret-${domain}`),
+      FileManager.removeFile(`/data/oauth2/.cookie-secret-${domain.domain}`),
     ]);
 
     if (restart) {
