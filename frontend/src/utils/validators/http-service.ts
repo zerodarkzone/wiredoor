@@ -26,6 +26,7 @@ export interface HttpServiceForm {
   backendProto?: string
   allowedIps?: string[]
   blockedIps?: string[]
+  requireAuth?: boolean
 }
 
 export const httpServiceValidator: ObjectSchema<HttpServiceForm> = Joi.object({

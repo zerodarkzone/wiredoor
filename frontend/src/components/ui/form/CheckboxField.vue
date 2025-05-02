@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { PropType } from 'vue'
 import ToolTip from '../ToolTip.vue'
 
 const props = defineProps({
@@ -9,6 +10,7 @@ const props = defineProps({
   disabled: Boolean,
   tabindex: Number,
   description: String,
+  message: String,
 })
 
 const model = defineModel<boolean>()
@@ -41,6 +43,11 @@ const emit = defineEmits(['change'])
         </slot>
       </ToolTip>
       <!-- End -->
+    </div>
+    <div v-if="props.label && props.message" class="form-message">
+      <div v-if="props.message" class="text-xs mt-1 text-gray-600">
+        {{ props.message }}
+      </div>
     </div>
   </div>
 </template>

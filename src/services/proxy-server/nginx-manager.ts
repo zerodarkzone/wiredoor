@@ -98,6 +98,16 @@ export class NginxManager {
 
     const serviceLocation: NginxLocationConf = new NginxLocationConf();
 
+    if (service.requireAuth) {
+      const domain = await Container.get(DomainRepository).findOneBy({
+        domain: service.domain,
+      });
+
+      if (domain.oauth2ServicePort) {
+        serviceLocation.setAuthRequired();
+      }
+    }
+
     if (service.blockedIps?.length) {
       for (const ipOrSubnet of service.blockedIps) {
         serviceLocation.setDeny(ipOrSubnet);
