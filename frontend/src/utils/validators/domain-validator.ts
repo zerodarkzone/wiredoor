@@ -24,5 +24,12 @@ export const domainValidator: ObjectSchema<DomainForm> = Joi.object({
   }),
   skipValidation: Joi.boolean().optional(),
   authentication: Joi.boolean().optional(),
-  allowedEmails: Joi.array().items(Joi.string().email().optional()).allow(null).optional(),
+  allowedEmails: Joi.array()
+    .items(
+      Joi.string()
+        .email({ tlds: { allow: false } })
+        .optional(),
+    )
+    .allow(null)
+    .optional(),
 })

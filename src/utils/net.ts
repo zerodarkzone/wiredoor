@@ -126,6 +126,36 @@ export default class Net {
     );
   }
 
+  static async getAvailableLocalPort(
+    knownPorts: number[],
+    min: number,
+    max: number,
+  ): Promise<number> {
+    const usedPorts = new Set(knownPorts);
+
+    const rangeSize = max - min + 1;
+
+    if (usedPorts.size >= rangeSize) {
+      throw new Error(
+        `No ports avaliable in range from ${min} to ${max} to expose your service.`,
+      );
+    }
+
+    let port: number = null;
+
+    for (let i = min; i <= max; i++) {
+      if (!usedPorts.has(i)) {
+        const used = await this.checkPort('127.0.0.1', i, null, 500);
+        if (!used) {
+          port = i;
+          break;
+        }
+      }
+    }
+
+    return port;
+  }
+
   static async checkPort(
     host: string,
     port: number,

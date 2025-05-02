@@ -27,8 +27,30 @@ export class NginxManager {
       .setServerName(domianName)
       .setAccessLog(ServerUtils.getLogFilePath(domianName, 'access.log'))
       .setErrorLog(ServerUtils.getLogFilePath(domianName, 'error.log'))
-      .setHttpSSLCertificates(domain.sslPair)
-      .includeLocations(`${domianName}/*.conf`);
+      .setHttpSSLCertificates(domain.sslPair);
+
+    if (domain.oauth2ServicePort) {
+      const oauth2LocationConf: NginxLocationConf = new NginxLocationConf();
+
+      oauth2LocationConf
+        .addBlock('proxy_pass', `http://127.0.0.1:${domain.oauth2ServicePort}`)
+        .addBlock('proxy_set_header Host', '$host')
+        .addBlock('proxy_set_header X-Real-IP', '$remote_addr')
+        .addBlock('proxy_set_header X-Auth-Request-Redirect', '$request_uri');
+
+      serverConf.addBlock('location /oauth2/', oauth2LocationConf.getConf());
+
+      oauth2LocationConf
+        .addBlock('proxy_set_header Content-Length', '""')
+        .addBlock('proxy_pass_request_body', 'off');
+
+      serverConf.addBlock(
+        'location = /oauth2/auth',
+        oauth2LocationConf.getConf(),
+      );
+    }
+
+    serverConf.includeLocations(`${domianName}/*.conf`);
 
     const confFile = `/etc/nginx/conf.d/${domianName}.conf`;
     await FileManager.saveToFile(confFile, serverConf.getNginxConf());

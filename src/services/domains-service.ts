@@ -1,6 +1,10 @@
 import { Inject, Service } from 'typedi';
 import { DomainRepository } from '../repositories/domain-repository';
-import { Domain, SSLTermination } from '../database/models/domain';
+import {
+  Domain,
+  Oauth2ProxyConfig,
+  SSLTermination,
+} from '../database/models/domain';
 import { NginxManager } from './proxy-server/nginx-manager';
 import { DomainQueryFilter } from '../repositories/filters/domain-query-filter';
 import {
@@ -12,6 +16,7 @@ import { NotFoundError } from 'routing-controllers';
 import Net from '../utils/net';
 import { PagedData } from '../repositories/filters/repository-query-filter';
 import { ValidationError } from '../utils/errors/validation-error';
+import { ProcessManager } from './oauth2-proxy/process-manager';
 
 @Service()
 export class DomainsService {
@@ -42,6 +47,16 @@ export class DomainsService {
     params: DomainType,
     restart = true,
   ): Promise<Domain> {
+    let oauth2ServicePort = null;
+    let oauth2Config: Oauth2ProxyConfig = null;
+
+    if (params.authentication) {
+      oauth2ServicePort = await this.domainRepository.getAvailablePort();
+      oauth2Config = {
+        allowedEmails: params.allowedEmails,
+      };
+    }
+
     const sslCerts = await SSLManager.getSSLCertificates(
       params.domain,
       params.ssl as SSLTermination,
@@ -50,6 +65,8 @@ export class DomainsService {
     const domain = await this.domainRepository.save({
       ...params,
       sslPair: sslCerts,
+      oauth2ServicePort,
+      oauth2Config,
     });
 
     await this.buildServerConfig(domain, restart);
@@ -130,6 +147,10 @@ export class DomainsService {
   public async deleteDomain(id: number): Promise<string> {
     const domain = await this.getDomain(id);
 
+    if (domain.oauth2ServicePort) {
+      await ProcessManager.removeOauthProcess(domain);
+    }
+
     await NginxManager.removeDomainServerConfig(domain);
 
     await this.domainRepository.delete(id);
@@ -148,6 +169,10 @@ export class DomainsService {
       );
 
       await this.domainRepository.save(domain);
+    }
+
+    if (domain.oauth2ServicePort) {
+      await ProcessManager.addOauthProcess(domain, restart);
     }
 
     await NginxManager.addDomainServer(domain, restart);
