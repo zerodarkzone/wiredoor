@@ -141,6 +141,8 @@ export class DomainsService {
       oauth2Config = {
         allowedEmails: params.allowedEmails,
       };
+    } else if (old.oauth2ServicePort) {
+      await ProcessManager.removeOauthProcess(old);
     }
 
     await this.domainRepository.save({
