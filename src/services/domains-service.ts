@@ -137,6 +137,8 @@ export class DomainsService {
     if (params.authentication) {
       if (!old.oauth2ServicePort) {
         oauth2ServicePort = await this.domainRepository.getAvailablePort();
+      } else {
+        oauth2ServicePort = old.oauth2ServicePort;
       }
       oauth2Config = {
         allowedEmails: params.allowedEmails,
