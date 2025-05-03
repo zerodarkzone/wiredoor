@@ -308,11 +308,13 @@ export class NginxManager {
   private static async addDefaultMainLocation(
     domain?: string,
   ): Promise<string> {
-    const defaultLocationConf = new NginxLocationConf();
+    if (!FileManager.isPath(this.getLocationFile(domain, '/'))) {
+      const defaultLocationConf = new NginxLocationConf();
 
-    defaultLocationConf.setRoot('/etc/nginx/default_pages');
+      defaultLocationConf.setRoot('/etc/nginx/default_pages');
 
-    return this.saveLocation(defaultLocationConf, domain);
+      return this.saveLocation(defaultLocationConf, domain);
+    }
   }
 
   private static getLocationFile(domain?: string, path: string = '/'): string {
