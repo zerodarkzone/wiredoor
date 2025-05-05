@@ -12,11 +12,12 @@ import {
   DomainType,
 } from '../validators/domain-validator';
 import { SSLManager } from './proxy-server/ssl-manager';
-import { NotFoundError } from 'routing-controllers';
+import { BadRequestError, NotFoundError } from 'routing-controllers';
 import Net from '../utils/net';
 import { PagedData } from '../repositories/filters/repository-query-filter';
 import { ValidationError } from '../utils/errors/validation-error';
 import { ProcessManager } from './oauth2-proxy/process-manager';
+import config from '../config';
 
 @Service()
 export class DomainsService {
@@ -51,6 +52,7 @@ export class DomainsService {
     let oauth2Config: Oauth2ProxyConfig = null;
 
     if (params.authentication) {
+      this.checkAuthConfig();
       oauth2ServicePort = await this.domainRepository.getAvailablePort();
       oauth2Config = {
         allowedEmails: params.allowedEmails,
@@ -135,6 +137,7 @@ export class DomainsService {
     let oauth2Config: Oauth2ProxyConfig = null;
 
     if (params.authentication) {
+      this.checkAuthConfig();
       if (!old.oauth2ServicePort) {
         oauth2ServicePort = await this.domainRepository.getAvailablePort();
       } else {
@@ -194,5 +197,17 @@ export class DomainsService {
     }
 
     await NginxManager.addDomainServer(domain, restart);
+  }
+
+  private checkAuthConfig(): void {
+    if (
+      !config.oauth2.provider ||
+      !config.oauth2.clientId ||
+      !config.oauth2.clientSecret
+    ) {
+      throw new BadRequestError(
+        'OAuth2 authentication cannot be enabled: required environment variables are missing. Please define OAUTH2_PROXY_PROVIDER, OAUTH2_PROXY_CLIENT_ID, and OAUTH2_PROXY_CLIENT_SECRET in your .env file and restart the server.',
+      );
+    }
   }
 }
