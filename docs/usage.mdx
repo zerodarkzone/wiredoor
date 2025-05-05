@@ -16,6 +16,10 @@ This guide walks you through the most common tasks in a logical order.
 
 Domains define how traffic is routed from the public internet into your internal services.
 
+<Callout type="info" emoji="💡">
+  You can register as many domains as needed and map multiple services to each.
+</Callout>
+
 ### Public Domains (Recommended)
 
 - Must point to your Wiredoor server's public IP (via A/CNAME DNS record)
@@ -28,8 +32,33 @@ Domains define how traffic is routed from the public internet into your internal
 - Use self-signed certificates
 - May trigger browser warnings unless trusted
 
-<Callout type="info" emoji="💡">
-  You can register as many domains as needed and map multiple services to each.
+### Enabling OAuth2 Authentication
+
+You can enable authentication per domain directly from the Wiredoor dashboard. This allows you to restrict access to specific services under a 
+domain using external identity providers like Google, GitHub, or any OIDC-compatible service. See the full list of supported providers in the 
+[OAuth2 Proxy documentation](https://oauth2-proxy.github.io/oauth2-proxy/configuration/providers/).
+
+Before enabling OAuth2 in the dashboard, you must define the following environment variables in your `.env` file and restart the Wiredoor server:
+
+```env
+OAUTH2_PROXY_PROVIDER=google
+OAUTH2_PROXY_CLIENT_ID=your-client-id
+OAUTH2_PROXY_CLIENT_SECRET=your-client-secret
+```
+
+Without these variables, the dashboard will not allow you to enable OAuth2 authentication.
+
+#### How to enable
+
+1. Navigate to the Domains section in the Wiredoor dashboard.
+2. Select the domain where you want to enable authentication.
+3. Check the box labeled Enable OAuth2 Authentication.
+4. Fill the allowed emails.
+
+You can protect specific services under this domain by checking **Require Authentication** when exposing them from the node.
+
+<Callout type="warning" emoji="⚠️">
+  When configuring your OAuth2 application in the provider’s dashboard, you must register the Redirect URI like `https://<your-domain>/oauth2/callback`
 </Callout>
 
 ---
