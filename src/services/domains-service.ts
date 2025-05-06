@@ -150,7 +150,7 @@ export class DomainsService {
         allowedEmails: params.allowedEmails,
       };
     } else if (old.oauth2ServicePort) {
-      await Container.get(HttpServicesService).removeAuthFromDomainServices(
+      await Container.get(HttpServicesService).removeAuthFromServices(
         old.domain,
       );
       await ProcessManager.removeOauthProcess(old);

@@ -133,9 +133,10 @@ export class HttpServicesService extends BaseServices {
     return httpService;
   }
 
-  public async removeAuthFromDomainServices(domain: string): Promise<void> {
+  public async removeAuthFromServices(domain: string): Promise<void> {
     const services = await this.httpServiceRepository.find({
       where: { domain, requireAuth: true },
+      relations: ['node'],
     });
 
     for (const service of services) {
