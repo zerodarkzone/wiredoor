@@ -1,4 +1,4 @@
-import { Inject, Service } from 'typedi';
+import Container, { Inject, Service } from 'typedi';
 import { DomainRepository } from '../repositories/domain-repository';
 import {
   Domain,
@@ -18,6 +18,7 @@ import { PagedData } from '../repositories/filters/repository-query-filter';
 import { ValidationError } from '../utils/errors/validation-error';
 import { ProcessManager } from './oauth2-proxy/process-manager';
 import config from '../config';
+import { HttpServicesService } from './http-services-service';
 
 @Service()
 export class DomainsService {
@@ -149,6 +150,9 @@ export class DomainsService {
         allowedEmails: params.allowedEmails,
       };
     } else if (old.oauth2ServicePort) {
+      await Container.get(HttpServicesService).removeAuthFromDomainServices(
+        old.domain,
+      );
       await ProcessManager.removeOauthProcess(old);
     }
 

@@ -252,6 +252,12 @@ describe('TCP Services Service', () => {
       expect(result.id).toBeDefined();
       expect(result.domain).toEqual(serviceData.domain);
 
+      const domain = await domainRepository.findOne({
+        where: { domain: serviceData.domain },
+      });
+
+      expect(domain?.domain).toEqual(result.domain);
+
       expect(mockSaveToFile.mock.calls).toEqual([
         [
           `/etc/nginx/conf.d/${serviceData.domain}.conf`,
@@ -264,7 +270,7 @@ describe('TCP Services Service', () => {
         [
           `/etc/nginx/stream.d/n${node.id}s${result.id}_stream.conf`,
           expect.stringContaining(
-            ` /etc/nginx/ssl/${serviceData.domain}/privkey`,
+            ` /etc/nginx/ssl/${serviceData.domain}/privkey.key;`,
           ),
         ],
       ]);

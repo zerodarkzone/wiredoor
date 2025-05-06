@@ -1,4 +1,4 @@
-const jwt = require('jsonwebtoken')
+const jwt = require('jsonwebtoken');
 const { default: config } = require('src/config');
 
 const mockLookup = jest.fn((c) => {
@@ -8,13 +8,13 @@ const mockLookup = jest.fn((c) => {
 const mockAxiosGet = jest.fn(() => {
   return Promise.resolve({
     status: 200,
-    data: ''
+    data: '',
   });
 });
 const mockAxiosPost = jest.fn(() => {
   return Promise.resolve({
     status: 200,
-    data: ''
+    data: '',
   });
 });
 
@@ -22,7 +22,7 @@ const mockCLIExec = jest.fn((c) => {
   return Promise.resolve({
     stdout: `${c} stdout`,
     stderr: ``,
-  })
+  });
 });
 
 const mockSaveToFile = jest.fn();
@@ -42,14 +42,14 @@ const mockGenPreSharedKey = jest.fn(async () => {
 jest.mock('dns', () => {
   return {
     resolve: mockLookup,
-  }
+  };
 });
 
 jest.mock('axios', () => {
   return {
     get: mockAxiosGet,
     post: mockAxiosPost,
-  }
+  };
 });
 
 const mockSyncConf = jest.fn();
@@ -60,10 +60,19 @@ const mockPeerRuntimeInfo = jest.fn();
 
 const mockRemoveDir = jest.fn();
 const mockRemoveFile = jest.fn();
-const mockIsPath = jest.fn(() => { return false });
+const mockIsPath = jest.fn(() => {
+  return false;
+});
 
-const mockNslookup = jest.fn(() => { return true });
-const mockCheckPort = jest.fn(() => { return true });
+const mockNslookup = jest.fn(() => {
+  return true;
+});
+const mockCheckCname = jest.fn(() => {
+  return false;
+});
+const mockCheckPort = jest.fn(() => {
+  return true;
+});
 
 jest.mock('../../utils/cli.ts', () => {
   return {
@@ -77,6 +86,7 @@ jest.mock('../../utils/net.ts', () => {
     delRoute: jest.fn(),
     isReachable: jest.fn(),
     nslookup: mockNslookup,
+    checkCNAME: mockCheckCname,
     lookupIncludesThisServer: mockNslookup,
     isIPForwardEnabled: jest.fn(),
     checkPort: mockCheckPort,
@@ -96,10 +106,14 @@ jest.mock('../../utils/iptables.ts', () => {
 
 jest.mock('../../utils/file-manager.ts', () => {
   return {
-    isFile: jest.fn(() => { return false }),
+    isFile: jest.fn(() => {
+      return false;
+    }),
     isPath: mockIsPath,
     isDirectory: jest.fn(),
-    mkdirSync: jest.fn(() => { return true; }),
+    mkdirSync: jest.fn(() => {
+      return true;
+    }),
     listDirectories: jest.fn(),
     readDirectory: jest.fn(),
     readFile: jest.fn(),
@@ -109,8 +123,8 @@ jest.mock('../../utils/file-manager.ts', () => {
     rename: jest.fn(),
     removeDir: mockRemoveDir,
     removeFile: mockRemoveFile,
-  }
-})
+  };
+});
 
 jest.mock('../../utils/wg-cli.ts', () => {
   return {
@@ -149,6 +163,7 @@ module.exports = {
   mockRemoveDir,
   mockRemoveFile,
   mockNslookup,
+  mockCheckCname,
   mockCheckPort,
-  mockAuthenticatedToken
+  mockAuthenticatedToken,
 };

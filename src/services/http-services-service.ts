@@ -133,6 +133,22 @@ export class HttpServicesService extends BaseServices {
     return httpService;
   }
 
+  public async removeAuthFromDomainServices(domain: string): Promise<void> {
+    const services = await this.httpServiceRepository.find({
+      where: { domain, requireAuth: true },
+    });
+
+    for (const service of services) {
+      service.requireAuth = false;
+    }
+
+    const updated = await this.httpServiceRepository.save(services);
+
+    for (const service of updated) {
+      await this.buildServerConfig(service, false);
+    }
+  }
+
   public async updateNodeHttpService(
     id: number,
     nodeId: number,
