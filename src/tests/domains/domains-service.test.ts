@@ -105,6 +105,7 @@ describe('Domains Service', () => {
           ),
         ],
         ['nginx -t'],
+        ['supervisorctl reread && supervisorctl update'],
       ]);
     });
   });
