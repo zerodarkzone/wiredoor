@@ -32,6 +32,8 @@ export class DomainsService {
     for (const domain of domains) {
       await this.buildServerConfig(domain, false);
     }
+
+    await ProcessManager.restart();
   }
 
   public async getAll(): Promise<Domain[]> {
