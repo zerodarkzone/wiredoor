@@ -5,9 +5,8 @@ import providers from './providers';
 import config from './config';
 import FileManager from './utils/file-manager';
 import { startPing, stopPing } from './providers/node-monitor';
-import Container from 'typedi';
-import { DataSource } from 'typeorm';
 import rateLimit from 'express-rate-limit';
+import { logger } from './providers/logger';
 
 export async function loadApp(): Promise<express.Application> {
   const app = express();
@@ -19,12 +18,13 @@ export async function loadApp(): Promise<express.Application> {
   if (FileManager.isFile(publicUIPath, 'index.html')) {
     app.use('/', express.static(publicUIPath));
   } else {
-    console.log(`UI Files not found! ${publicUIPath}`);
+    logger.warn(`UI Files not found! ${publicUIPath}`);
     app.get('/', (req, res) => {
       return res.status(200).end(`Welcome to ${config.app.name}!`);
     });
   }
 
+  app.set('trust proxy', true);
   app.use(
     rateLimit({
       windowMs: 60 * 1000, // 1min
@@ -42,7 +42,7 @@ export async function loadApp(): Promise<express.Application> {
 
   if (process.env.NODE_ENV !== 'test') {
     app.listen(config.app.port, () => {
-      console.log(`${config.app.name} listening on port: ${config.app.port}`);
+      logger.info(`${config.app.name} listening on port: ${config.app.port}`);
     });
 
     startPing();
@@ -60,7 +60,7 @@ process.on('SIGINT', shutDownApp);
 process.on('SIGTERM', shutDownApp);
 
 process.on('uncaughtException', (err) => {
-  console.error('Unhandled Exception:', err);
+  logger.error({ err }, 'UncaughtException');
   shutDownApp();
 });
 

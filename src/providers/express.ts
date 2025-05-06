@@ -11,11 +11,14 @@ import DomainController from '../controllers/domain-controller';
 import ConfigController from '../controllers/config-controller';
 import LogController from '../controllers/log-controller';
 import { errorHandlerMiddleware } from '../middlewares/error-handler-middleware';
+import { httpLogger } from './logger';
 
 export default ({ app }: { app: express.Application }): void => {
   app.use(compression());
   app.use(bodyParser.json({ limit: '1mb' }));
   app.use(bodyParser.urlencoded({ extended: true, limit: '100kb' }));
+
+  app.use(httpLogger);
 
   // Express Routing Controllers
   useContainer(Container);
