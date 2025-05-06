@@ -4,6 +4,7 @@ import tls from 'tls';
 import dns from 'dns';
 import CLI from './cli';
 import config from '../config';
+import { Resolver } from 'dns/promises';
 
 export default class Net {
   static async addRoute(
@@ -164,19 +165,11 @@ export default class Net {
     ssl?: boolean,
     timeout = 3000,
   ): Promise<boolean> {
-    let customResolver = null;
-
     if (resolver) {
-      // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-      customResolver = (hostname, options, callback) => {
-        dns.resolve4(hostname, (err, addresses) => {
-          if (err) {
-            return callback(err);
-          }
-
-          callback(null, addresses[0], 4);
-        });
-      };
+      const dnsResolver = new Resolver();
+      dnsResolver.setServers([resolver]);
+      const [resolved] = await dnsResolver.resolve4(host);
+      host = resolved;
     }
 
     return new Promise((resolve) => {
@@ -187,7 +180,6 @@ export default class Net {
           {
             host,
             port,
-            lookup: customResolver,
             rejectUnauthorized: true,
           },
           () => {
@@ -199,7 +191,6 @@ export default class Net {
         socket = socket.connect({
           host,
           port,
-          lookup: customResolver,
         });
       }
 
