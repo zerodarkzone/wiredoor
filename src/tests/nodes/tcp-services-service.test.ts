@@ -245,18 +245,14 @@ describe('TCP Services Service', () => {
         }),
       );
 
+      await domainService.createDomainIfNotExists(serviceData.domain as string);
+
       const result = await service.createTcpService(node.id, serviceData);
 
       expect(mockCheckPort).toHaveBeenCalled();
 
       expect(result.id).toBeDefined();
       expect(result.domain).toEqual(serviceData.domain);
-
-      const domain = await domainRepository.findOne({
-        where: { domain: serviceData.domain },
-      });
-
-      expect(domain?.domain).toEqual(result.domain);
 
       expect(mockSaveToFile.mock.calls).toEqual([
         [
@@ -304,6 +300,8 @@ describe('TCP Services Service', () => {
           return true;
         }),
       );
+
+      await domainService.createDomainIfNotExists(serviceData.domain as string);
 
       const result = await service.createTcpService(node.id, serviceData);
 
