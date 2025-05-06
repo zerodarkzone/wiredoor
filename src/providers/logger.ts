@@ -30,9 +30,17 @@ export const httpLogger = pinoHttp({
   },
   serializers: {
     req(req) {
+      const url = new URL(
+        req.url || '',
+        `http://${req.headers.host || 'localhost'}`,
+      );
+
+      if (url.searchParams.has('token')) {
+        url.searchParams.set('token', '[REDACTED]');
+      }
       return {
         method: req.method,
-        url: req.url,
+        url: url.pathname + url.search,
         id: req.id,
       };
     },

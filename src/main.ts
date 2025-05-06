@@ -25,7 +25,7 @@ export async function loadApp(): Promise<express.Application> {
   }
 
   if (process.env.NODE_ENV === 'production') {
-    app.set('trust proxy', true);
+    app.set('trust proxy', 'loopback');
     app.use(
       rateLimit({
         windowMs: 60 * 1000, // 1min
