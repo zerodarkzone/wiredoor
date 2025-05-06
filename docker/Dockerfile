@@ -72,6 +72,8 @@ RUN npm run build
 
 FROM base AS production
 
+ENV NODE_ENV=production
+
 LABEL org.opencontainers.image.licenses=MIT \
       org.opencontainers.image.description="Self hosted ingress-as-a-service platform that allows you to expose applications and services running in private or local networks to the internet" \
       org.opencontainers.image.documentation=https://www.wiredoor.net/docs \

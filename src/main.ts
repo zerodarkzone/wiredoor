@@ -24,14 +24,16 @@ export async function loadApp(): Promise<express.Application> {
     });
   }
 
-  app.set('trust proxy', true);
-  app.use(
-    rateLimit({
-      windowMs: 60 * 1000, // 1min
-      max: 60,
-      message: 'Rate Limit exceeded',
-    }),
-  );
+  if (process.env.NODE_ENV === 'production') {
+    app.set('trust proxy', true);
+    app.use(
+      rateLimit({
+        windowMs: 60 * 1000, // 1min
+        max: 60,
+        message: 'Rate Limit exceeded',
+      }),
+    );
+  }
 
   app.get('*', (req, res, next) => {
     if (req.originalUrl.startsWith('/api')) {

@@ -3,9 +3,10 @@ import pinoHttp from 'pino-http';
 import { v4 as uuidv4 } from 'uuid';
 
 const isProd = process.env.NODE_ENV === 'production';
+const isTest = process.env.NODE_ENV === 'test';
 
 export const logger = pino({
-  level: process.env.LOG_LEVEL || 'info',
+  level: !isTest ? process.env.LOG_LEVEL || 'info' : 'silent',
   redact: ['req.headers.authorization'],
   transport: isProd
     ? undefined
@@ -20,7 +21,7 @@ export const logger = pino({
 });
 
 export const httpLogger = pinoHttp({
-  logger,
+  logger: logger,
   genReqId: () => uuidv4(),
   customLogLevel: (res, err) => {
     if (res.statusCode >= 500 || err) return 'error';
