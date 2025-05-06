@@ -1,5 +1,6 @@
 import { readFile } from 'fs/promises';
 import net from 'net';
+import tls from 'tls';
 import dns from 'dns';
 import CLI from './cli';
 import config from '../config';
@@ -145,7 +146,7 @@ export default class Net {
 
     for (let i = min; i <= max; i++) {
       if (!usedPorts.has(i)) {
-        const used = await this.checkPort('127.0.0.1', i, null, 500);
+        const used = await this.checkPort('127.0.0.1', i, null, null, 500);
         if (!used) {
           port = i;
           break;
@@ -160,6 +161,7 @@ export default class Net {
     host: string,
     port: number,
     resolver?: string,
+    ssl?: boolean,
     timeout = 3000,
   ): Promise<boolean> {
     let customResolver = null;
@@ -178,7 +180,29 @@ export default class Net {
     }
 
     return new Promise((resolve) => {
-      const socket = new net.Socket();
+      let socket = new net.Socket();
+
+      if (ssl) {
+        socket = tls.connect(
+          {
+            host,
+            port,
+            lookup: customResolver,
+            rejectUnauthorized: true,
+          },
+          () => {
+            socket.end();
+            resolve(true);
+          },
+        );
+      } else {
+        socket = socket.connect({
+          host,
+          port,
+          lookup: customResolver,
+        });
+      }
+
       socket.setTimeout(timeout);
 
       socket.on('connect', () => {
@@ -194,12 +218,6 @@ export default class Net {
       socket.on('error', () => {
         socket.destroy();
         resolve(false);
-      });
-
-      socket.connect({
-        host,
-        port,
-        lookup: customResolver,
       });
     });
   }

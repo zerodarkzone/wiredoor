@@ -13,6 +13,7 @@ export class BaseServices {
     nodeId: number,
     port: number,
     host?: string,
+    ssl?: boolean,
   ): Promise<void> {
     const node = await this.nodeRepo.findOne({
       where: { id: nodeId },
@@ -27,7 +28,7 @@ export class BaseServices {
     const resolver =
       node.isGateway && host && !IP_CIDR.isValidIP(host) ? node.address : null;
 
-    const portAvailable = await Net.checkPort(server, port, resolver);
+    const portAvailable = await Net.checkPort(server, port, resolver, ssl);
 
     if (!portAvailable) {
       throw new ValidationError({
