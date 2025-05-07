@@ -93,6 +93,5 @@ export default {
     provider: process.env.OAUTH2_PROXY_PROVIDER,
     clientId: process.env.OAUTH2_PROXY_CLIENT_ID,
     clientSecret: process.env.OAUTH2_PROXY_CLIENT_SECRET,
-    xAuthHeader: process.env.OAUTH2_PROXY_SET_XAUTHREQUEST,
   },
 };
