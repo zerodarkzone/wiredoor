@@ -62,6 +62,10 @@ export default class FileManager {
     return fsPromises.readFile(filepath, encoding);
   }
 
+  static readFileSync(filepath: string, encoding: BufferEncoding): string {
+    return fs.readFileSync(filepath, encoding);
+  }
+
   static readFileInDir(
     dir: string,
     filename: string,

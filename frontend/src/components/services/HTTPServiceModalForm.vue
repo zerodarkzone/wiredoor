@@ -7,6 +7,8 @@ import FormField from '../ui/form/FormField.vue'
 import SelectField from '../ui/form/SelectField.vue'
 import { Button } from '../ui/button'
 import { useHttpServiceForm } from '@/composables/services/useHttpServiceForm'
+import { computed } from 'vue'
+import CheckboxField from '../ui/form/CheckboxField.vue'
 
 const {
   isOpen,
@@ -19,6 +21,14 @@ const {
   domainOptions,
   node,
 } = useHttpServiceForm()
+
+const authAvailable = computed(() => {
+  if (formData.value.domain && domainOptions.value.filter((d) => d.value === formData.value.domain)[0]?.authentication) {
+    return true
+  } else {
+    return false
+  }
+})
 </script>
 <template>
   <FormModal
@@ -221,6 +231,16 @@ const {
               >Add</Button
             >
           </FormField>
+        </div>
+        <div>
+          <CheckboxField
+            v-model="formData.requireAuth"
+            class="mt-2 mb-6"
+            label="Require Authentication"
+            description="Only authenticated users will be able to access this service. Emails must be configured in the domain settings under `Enable OAuth2 Authentication`."
+            :message="!authAvailable && formData.domain ? '⚠️ Authentication is not enabled for this domain' : undefined"
+            :disabled="!authAvailable"
+          />
         </div>
       </div>
     </div>

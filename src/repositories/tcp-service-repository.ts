@@ -3,6 +3,7 @@ import { DataSource, Repository } from 'typeorm';
 import { TcpService } from '../database/models/tcp-service';
 import config from '../config';
 import { ValidationError } from '../utils/errors/validation-error';
+import Net from '../utils/net';
 
 @Service()
 export class TcpServiceRepository extends Repository<TcpService> {
@@ -33,30 +34,21 @@ export class TcpServiceRepository extends Repository<TcpService> {
       .select('tcpService.port')
       .getRawMany();
 
-    const usedPorts = new Set(servicePorts.map((s) => s.port));
-
-    const rangeSize = max - min + 1;
-
-    if (usedPorts.size >= rangeSize) {
+    try {
+      return Net.getAvailableLocalPort(
+        servicePorts.map((s) => s.port),
+        min,
+        max,
+      );
+    } catch (e: any) {
       throw new ValidationError({
         body: [
           {
             field: 'port',
-            message: `No ports avaliable in range from ${min} to ${max} to expose your service.`,
+            message: e.message,
           },
         ],
       });
     }
-
-    let port: number = null;
-
-    for (let i = min; i <= max; i++) {
-      if (!usedPorts.has(i)) {
-        port = i;
-        break;
-      }
-    }
-
-    return port;
   }
 }

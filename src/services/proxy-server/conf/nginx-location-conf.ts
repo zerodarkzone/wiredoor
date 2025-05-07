@@ -5,6 +5,12 @@ export class NginxLocationConf extends NginxConf {
     super(config);
   }
 
+  setAuthRequired(): NginxLocationConf {
+    this.addBlock('include', 'partials/require_oauth2.conf');
+
+    return this;
+  }
+
   setResolver(resolver: string): NginxLocationConf {
     this.addBlock('resolver', `${resolver} valid=30s`);
     this.addBlock('resolver_timeout', '10s');

@@ -1,6 +1,10 @@
-import { Inject, Service } from 'typedi';
+import Container, { Inject, Service } from 'typedi';
 import { DomainRepository } from '../repositories/domain-repository';
-import { Domain, SSLTermination } from '../database/models/domain';
+import {
+  Domain,
+  Oauth2ProxyConfig,
+  SSLTermination,
+} from '../database/models/domain';
 import { NginxManager } from './proxy-server/nginx-manager';
 import { DomainQueryFilter } from '../repositories/filters/domain-query-filter';
 import {
@@ -8,10 +12,13 @@ import {
   DomainType,
 } from '../validators/domain-validator';
 import { SSLManager } from './proxy-server/ssl-manager';
-import { NotFoundError } from 'routing-controllers';
+import { BadRequestError, NotFoundError } from 'routing-controllers';
 import Net from '../utils/net';
 import { PagedData } from '../repositories/filters/repository-query-filter';
 import { ValidationError } from '../utils/errors/validation-error';
+import { ProcessManager } from './oauth2-proxy/process-manager';
+import config from '../config';
+import { HttpServicesService } from './http-services-service';
 
 @Service()
 export class DomainsService {
@@ -26,6 +33,8 @@ export class DomainsService {
     for (const domain of domains) {
       await this.buildServerConfig(domain, false);
     }
+
+    await ProcessManager.restart();
   }
 
   public async getAll(): Promise<Domain[]> {
@@ -42,6 +51,17 @@ export class DomainsService {
     params: DomainType,
     restart = true,
   ): Promise<Domain> {
+    let oauth2ServicePort = null;
+    let oauth2Config: Oauth2ProxyConfig = null;
+
+    if (params.authentication) {
+      this.checkAuthConfig();
+      oauth2ServicePort = await this.domainRepository.getAvailablePort();
+      oauth2Config = {
+        allowedEmails: params.allowedEmails,
+      };
+    }
+
     const sslCerts = await SSLManager.getSSLCertificates(
       params.domain,
       params.ssl as SSLTermination,
@@ -50,6 +70,8 @@ export class DomainsService {
     const domain = await this.domainRepository.save({
       ...params,
       sslPair: sslCerts,
+      oauth2ServicePort,
+      oauth2Config,
     });
 
     await this.buildServerConfig(domain, restart);
@@ -114,10 +136,32 @@ export class DomainsService {
       );
     }
 
+    let oauth2ServicePort = null;
+    let oauth2Config: Oauth2ProxyConfig = null;
+
+    if (params.authentication) {
+      this.checkAuthConfig();
+      if (!old.oauth2ServicePort) {
+        oauth2ServicePort = await this.domainRepository.getAvailablePort();
+      } else {
+        oauth2ServicePort = old.oauth2ServicePort;
+      }
+      oauth2Config = {
+        allowedEmails: params.allowedEmails,
+      };
+    } else if (old.oauth2ServicePort) {
+      await Container.get(HttpServicesService).removeAuthFromServices(
+        old.domain,
+      );
+      await ProcessManager.removeOauthProcess(old);
+    }
+
     await this.domainRepository.save({
       id,
       ...params,
       sslPair,
+      oauth2ServicePort,
+      oauth2Config,
     });
 
     const domain = await this.getDomain(id);
@@ -129,6 +173,10 @@ export class DomainsService {
 
   public async deleteDomain(id: number): Promise<string> {
     const domain = await this.getDomain(id);
+
+    if (domain.oauth2ServicePort) {
+      await ProcessManager.removeOauthProcess(domain);
+    }
 
     await NginxManager.removeDomainServerConfig(domain);
 
@@ -150,6 +198,22 @@ export class DomainsService {
       await this.domainRepository.save(domain);
     }
 
+    if (domain.oauth2ServicePort) {
+      await ProcessManager.addOauthProcess(domain, restart);
+    }
+
     await NginxManager.addDomainServer(domain, restart);
+  }
+
+  private checkAuthConfig(): void {
+    if (
+      !config.oauth2.provider ||
+      !config.oauth2.clientId ||
+      !config.oauth2.clientSecret
+    ) {
+      throw new BadRequestError(
+        'OAuth2 authentication cannot be enabled: required environment variables are missing. Please define OAUTH2_PROXY_PROVIDER, OAUTH2_PROXY_CLIENT_ID, and OAUTH2_PROXY_CLIENT_SECRET in your .env file and restart the server.',
+      );
+    }
   }
 }

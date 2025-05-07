@@ -19,6 +19,9 @@ At its core, Wiredoor creates a **reverse VPN tunnel** using [WireGuard](https:/
 to establish outbound, encrypted connections to the Wiredoor Server, which acts as a public ingress point. Once connected,
 traffic from the internet can be securely routed into your network via domain-based rules, without requiring any inbound access to your local environment.
 
+New in v1.1.0: Wiredoor now supports OAuth2-based authentication per domain with [OAuth2-Proxy](https://oauth2-proxy.github.io/oauth2-proxy/).
+You can restrict access to services using Google, GitHub, or any compatible OpenID provider — directly from the dashboard, with per-service granularity.
+
 ### Core components
 
 | Component     | Role                                                             |
@@ -27,10 +30,6 @@ traffic from the internet can be securely routed into your network via domain-ba
 | NGINX Proxy   | Routes incoming internet traffic to internal services            |
 | Admin Panel   | UI + API to manage domains, nodes, and certificates              |
 | Wiredoor CLI  | Tool to register, connect, and expose services from your devices |
-
-- Wiredoor CLI
-
-- Lightweight command-line tool designed to interact with the Wiredoor API from nodes directly.
 
 ### How is it different from traditional ingress or tunnels?
 
@@ -71,8 +70,10 @@ graph TD
 
 - Secure and lightweight VPN via WireGuard
 - Built-in NGINX reverse proxy
+- OAuth2-based Authentication support per domain and service (Google, GitHub, etc.) with [OAuth2-proxy](https://github.com/oauth2-proxy/oauth2-proxy)
 - Automatic SSL certificate provisioning (Let's Encrypt support)
 - Expose HTTP, TCP, or UDP services
+- Websocket Support
 - Works with Docker, Kubernetes, legacy servers, IoT, and more
 - Supports both single-node and gateway (site-to-site) modes
 - CLI tools for automation and scripting

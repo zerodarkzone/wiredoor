@@ -5,6 +5,8 @@ import InputField from '../ui/form/InputField.vue'
 import SelectField from '../ui/form/SelectField.vue'
 import CheckboxField from '../ui/form/CheckboxField.vue'
 import { useDomainForm } from '@/composables/domains/useDomainForm'
+import FormField from '../ui/form/FormField.vue'
+import { Button } from '../ui/button'
 
 
 const { isOpen, formData, errors, options, closeDialog, submitDialog, validateField } =
@@ -45,6 +47,24 @@ const sslOptions = [
           @blur="(e) => validateField('domain')"
         />
 
+        <CheckboxField
+          v-if="(formData.domain && errors.domain) || formData.skipValidation"
+          v-model="formData.skipValidation"
+          class="mb-6"
+          label="Skip Domain Validation"
+          description="If you skip domain validation, Certbot (Let's Encrypt) certificates cannot be issued. Only self-signed certificates will be available."
+          @change="
+            (e) => {
+              if (formData.skipValidation) {
+                if (errors.domain) {
+                  delete errors.domain
+                }
+                formData.ssl = 'self-signed'
+              }
+            }
+          "
+        />
+
         <SelectField
           v-model="formData.ssl"
           field="ssl"
@@ -57,18 +77,55 @@ const sslOptions = [
         />
 
         <CheckboxField
-          v-model="formData.skipValidation"
-          class="mt-4 mb-2"
-          label="Skip Domain Validation"
-          description="If you skip domain validation, Certbot (Let's Encrypt) certificates cannot be issued. Only self-signed certificates will be available."
+          v-model="formData.authentication"
+          class="mt-2 mb-6"
+          label="Enable OAuth2 Authentication"
+          description="Enable OAuth2 authentication support for this domain. Services exposed with authentication required will restrict access to the specified users only. Public services can still be exposed without authentication."
           @change="
             (e) => {
-              if (formData.skipValidation) {
-                formData.ssl = 'self-signed'
+              if (formData.authentication) {
+                formData.allowedEmails = ['']
+              } else {
+                formData.allowedEmails = undefined
               }
             }
           "
         />
+
+        <div v-if="formData.authentication">
+          <FormField
+            field="allowedEmails"
+            label="Allowed Emails"
+            class="mt-4"
+            description="List of email addresses allowed to access services with authentication enabled."
+            :errors="errors"
+          >
+            <div v-if="formData.allowedEmails">
+              <div
+                v-for="(ip, key) in formData.allowedEmails"
+                :key="`allowed-` + key"
+                class="flex mt-2"
+              >
+                <div class="w-full">
+                  <InputField
+                    v-model="formData.allowedEmails[key]"
+                    field="allowedEmails"
+                    action="close"
+                    placeholder="Enter an email address"
+                    @action="() => formData.allowedEmails?.splice(key, 1)"
+                  />
+                </div>
+              </div>
+            </div>
+            <Button
+              class="mt-2"
+              @click.prevent="
+                formData.allowedEmails ? formData.allowedEmails.push('') : (formData.allowedEmails = [''])
+              "
+              >Add Email</Button
+            >
+          </FormField>
+        </div>
       </div>
     </div>
   </FormModal>

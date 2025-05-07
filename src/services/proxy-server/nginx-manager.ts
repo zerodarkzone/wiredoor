@@ -27,8 +27,30 @@ export class NginxManager {
       .setServerName(domianName)
       .setAccessLog(ServerUtils.getLogFilePath(domianName, 'access.log'))
       .setErrorLog(ServerUtils.getLogFilePath(domianName, 'error.log'))
-      .setHttpSSLCertificates(domain.sslPair)
-      .includeLocations(`${domianName}/*.conf`);
+      .setHttpSSLCertificates(domain.sslPair);
+
+    if (domain.oauth2ServicePort) {
+      const oauth2LocationConf: NginxLocationConf = new NginxLocationConf();
+
+      oauth2LocationConf
+        .addBlock('proxy_pass', `http://127.0.0.1:${domain.oauth2ServicePort}`)
+        .addBlock('proxy_set_header Host', '$host')
+        .addBlock('proxy_set_header X-Real-IP', '$remote_addr')
+        .addBlock('proxy_set_header X-Auth-Request-Redirect', '$request_uri');
+
+      serverConf.addBlock('location /oauth2/', oauth2LocationConf.getConf());
+
+      oauth2LocationConf
+        .addBlock('proxy_set_header Content-Length', '""')
+        .addBlock('proxy_pass_request_body', 'off');
+
+      serverConf.addBlock(
+        'location = /oauth2/auth',
+        oauth2LocationConf.getConf(),
+      );
+    }
+
+    serverConf.includeLocations(`${domianName}/*.conf`);
 
     const confFile = `/etc/nginx/conf.d/${domianName}.conf`;
     await FileManager.saveToFile(confFile, serverConf.getNginxConf());
@@ -75,6 +97,16 @@ export class NginxManager {
     }
 
     const serviceLocation: NginxLocationConf = new NginxLocationConf();
+
+    if (service.requireAuth) {
+      const domain = await Container.get(DomainRepository).findOneBy({
+        domain: service.domain,
+      });
+
+      if (domain.oauth2ServicePort) {
+        serviceLocation.setAuthRequired();
+      }
+    }
 
     if (service.blockedIps?.length) {
       for (const ipOrSubnet of service.blockedIps) {
@@ -196,8 +228,13 @@ export class NginxManager {
           service.domain,
         );
 
-        if (domain) {
+        if (domain?.sslPair) {
           serverConf.setStreamSSLCertificate(domain.sslPair);
+        } else {
+          const sslPair = await SSLManager.getSelfSignedCertificates(
+            service.domain,
+          );
+          serverConf.setStreamSSLCertificate(sslPair);
         }
       } else {
         const sslPair = await SSLManager.getSelfSignedCertificates('_');
@@ -276,11 +313,13 @@ export class NginxManager {
   private static async addDefaultMainLocation(
     domain?: string,
   ): Promise<string> {
-    const defaultLocationConf = new NginxLocationConf();
+    if (!FileManager.isPath(this.getLocationFile(domain, '/'))) {
+      const defaultLocationConf = new NginxLocationConf();
 
-    defaultLocationConf.setRoot('/etc/nginx/default_pages');
+      defaultLocationConf.setRoot('/etc/nginx/default_pages');
 
-    return this.saveLocation(defaultLocationConf, domain);
+      return this.saveLocation(defaultLocationConf, domain);
+    }
   }
 
   private static getLocationFile(domain?: string, path: string = '/'): string {

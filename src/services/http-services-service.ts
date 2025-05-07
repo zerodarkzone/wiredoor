@@ -80,7 +80,12 @@ export class HttpServicesService extends BaseServices {
     nodeId: number,
     params: HttpServiceType,
   ): Promise<HttpService> {
-    // await this.checkNodePort(nodeId, params.backendPort, params.backendHost);
+    await this.checkNodePort(
+      nodeId,
+      params.backendPort,
+      params.backendHost,
+      params.backendProto === 'https',
+    );
 
     const { id } = await this.httpServiceRepository.save({ ...params, nodeId });
 
@@ -99,7 +104,6 @@ export class HttpServicesService extends BaseServices {
 
     if (old.node.isLocal && old.backendHost === '127.0.0.1') {
       params = {
-        name: params.domain,
         domain: params.domain,
         allowedIps: params.allowedIps,
         blockedIps: params.blockedIps,
@@ -111,6 +115,7 @@ export class HttpServicesService extends BaseServices {
         old.nodeId,
         params.backendPort,
         params.backendHost,
+        params.backendProto === 'https',
       );
     }
 
@@ -126,6 +131,23 @@ export class HttpServicesService extends BaseServices {
     await this.buildServerConfig(httpService, true);
 
     return httpService;
+  }
+
+  public async removeAuthFromServices(domain: string): Promise<void> {
+    const services = await this.httpServiceRepository.find({
+      where: { domain, requireAuth: true },
+      relations: ['node'],
+    });
+
+    for (const service of services) {
+      service.requireAuth = false;
+    }
+
+    const updated = await this.httpServiceRepository.save(services);
+
+    for (const service of updated) {
+      await this.buildServerConfig(service, false);
+    }
   }
 
   public async updateNodeHttpService(

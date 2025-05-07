@@ -6,6 +6,8 @@ export interface DomainForm {
   domain: string
   ssl?: string
   skipValidation?: boolean
+  authentication?: boolean
+  allowedEmails?: string[]
 }
 
 export interface Domain extends DomainForm {
@@ -21,4 +23,13 @@ export const domainValidator: ObjectSchema<DomainForm> = Joi.object({
     otherwise: Joi.valid('self-signed', 'certbot').allow(null).optional(),
   }),
   skipValidation: Joi.boolean().optional(),
+  authentication: Joi.boolean().optional(),
+  allowedEmails: Joi.array()
+    .items(
+      Joi.string()
+        .email({ tlds: { allow: false } })
+        .optional(),
+    )
+    .allow(null)
+    .optional(),
 })

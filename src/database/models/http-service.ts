@@ -59,6 +59,11 @@ export class HttpService {
   })
   enabled: boolean;
 
+  @Column('boolean', {
+    default: false,
+  })
+  requireAuth: boolean;
+
   @Column({
     type: 'json',
     nullable: true,

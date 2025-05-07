@@ -30,6 +30,8 @@ export interface DomainType {
   domain: string;
   ssl?: string;
   validation?: boolean;
+  authentication?: boolean;
+  allowedEmails?: string[];
 }
 
 export interface DomainFilterQueryParams extends FilterQueryDto {
@@ -62,6 +64,15 @@ export const domainValidator: ObjectSchema<DomainType> = Joi.object({
     is: true,
     then: Joi.valid('self-signed').allow(null).optional(),
     otherwise: Joi.valid('self-signed', 'certbot').allow(null).optional(),
+  }),
+  authentication: Joi.boolean().optional(),
+  allowedEmails: Joi.when('authentication', {
+    is: true,
+    then: Joi.array()
+      .items(Joi.string().email().optional())
+      .unique()
+      .optional(),
+    otherwise: Joi.array().max(0).allow(null).optional(),
   }),
   skipValidation: Joi.boolean().optional(),
 });

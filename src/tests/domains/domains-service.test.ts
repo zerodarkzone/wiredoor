@@ -105,6 +105,7 @@ describe('Domains Service', () => {
           ),
         ],
         ['nginx -t'],
+        ['supervisorctl reread && supervisorctl update'],
       ]);
     });
   });
@@ -178,7 +179,7 @@ describe('Domains Service', () => {
       ]);
     });
     it('should create Domain and call certbot', async () => {
-      const data = makeDomainData({ ssl: true });
+      const data = makeDomainData({ ssl: 'certbot' });
 
       mockNslookup.mockImplementation(
         jest.fn(() => {
@@ -210,6 +211,61 @@ describe('Domains Service', () => {
             new RegExp(`certbot.*${data.domain?.replace('.', '\\.')}.*`),
           ),
         ],
+        ['nginx -t'],
+        ['nginx -s reload'],
+      ]);
+    });
+    it('should create domain with authentication enabled', async () => {
+      const data = makeDomainData({ ssl: 'certbot', authentication: true });
+
+      jest.clearAllMocks();
+
+      const result = await service.createDomain(data);
+
+      expect(result.oauth2ServicePort).toEqual(expect.any(Number));
+      expect(result.id).toBeDefined();
+      expect(result.domain).toEqual(data.domain);
+
+      expect(mockSaveToFile.mock.calls).toEqual([
+        [
+          `/data/oauth2/.cookie-secret-${data.domain}`,
+          expect.any(String),
+          'utf-8',
+          0o600,
+        ],
+        [
+          `/opt/oauth2-proxy/${data.domain}-emails`,
+          result.oauth2Config.allowedEmails.join('\n'),
+          'utf-8',
+          0o644,
+        ],
+        [
+          `/etc/supervisor/conf.d/oauth2-proxy-d${result.id}.conf`,
+          expect.stringContaining(
+            ` OAUTH2_PROXY_HTTP_ADDRESS="127.0.0.1:${result.oauth2ServicePort}",`,
+          ),
+          'utf-8',
+          0o644,
+        ],
+        [
+          `/etc/nginx/conf.d/${data.domain}.conf`,
+          expect.stringContaining(
+            ` http://127.0.0.1:${result.oauth2ServicePort};`,
+          ),
+        ],
+        [
+          `/etc/nginx/locations/${data.domain}/__main.conf`,
+          expect.stringContaining(`root /etc/nginx/default_pages;`),
+        ],
+      ]);
+
+      expect(mockCLIExec.mock.calls).toEqual([
+        [
+          expect.stringMatching(
+            new RegExp(`certbot.*${data.domain?.replace('.', '\\.')}.*`),
+          ),
+        ],
+        ['supervisorctl reread && supervisorctl update'],
         ['nginx -t'],
         ['nginx -s reload'],
       ]);

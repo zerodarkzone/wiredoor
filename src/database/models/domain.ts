@@ -1,4 +1,4 @@
-import { Exclude } from 'class-transformer';
+import { Exclude, Expose } from 'class-transformer';
 import {
   Column,
   CreateDateColumn,
@@ -16,6 +16,10 @@ export enum SSLTermination {
 export interface SSLCerts {
   fullchain: string;
   privkey: string;
+}
+
+export interface Oauth2ProxyConfig {
+  allowedEmails: string[];
 }
 
 @Entity('domains')
@@ -45,6 +49,20 @@ export class Domain {
   })
   skipValidation: boolean;
 
+  @Exclude()
+  @Column({
+    nullable: true,
+    unique: true,
+  })
+  oauth2ServicePort: number;
+
+  @Exclude()
+  @Column({
+    type: 'json',
+    nullable: true,
+  })
+  oauth2Config: Oauth2ProxyConfig;
+
   @CreateDateColumn()
   //@CreateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP(6)" })
   created_at: Date;
@@ -52,4 +70,14 @@ export class Domain {
   @UpdateDateColumn()
   //@UpdateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP(6)", onUpdate: "CURRENT_TIMESTAMP(6)" })
   updated_at: Date;
+
+  @Expose()
+  get authentication(): boolean {
+    return !!this.oauth2ServicePort;
+  }
+
+  @Expose()
+  get allowedEmails(): string[] {
+    return this.oauth2Config?.allowedEmails || null;
+  }
 }

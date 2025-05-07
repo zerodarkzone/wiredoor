@@ -30,7 +30,9 @@ It uses reverse VPN connections powered by [WireGuard](https://www.wireguard.com
 
 - **Secure VPN tunnel** with WireGuard (low latency and high performance)
 - **Reverse proxy** with NGINX
+- **OAuth2-based Authentication** support per domain and service (Google, GitHub, etc.) with [OAuth2-proxy](https://github.com/oauth2-proxy/oauth2-proxy)
 - **Automatic SSL certificates** via Let's Encrypt (or self-signed fallback)
+- **Websocket Support** Wiredoor supports WebSocket connections out of the box.
 - **Web UI** to manage nodes, services, and domains
 - **Multi-environment support**: works with Kubernetes, Docker, legacy servers, IoT, etc.
 - **CLI client** (`wiredoor-cli`) for service management and automation

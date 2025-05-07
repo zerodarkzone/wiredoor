@@ -245,6 +245,8 @@ describe('TCP Services Service', () => {
         }),
       );
 
+      await domainService.createDomainIfNotExists(serviceData.domain as string);
+
       const result = await service.createTcpService(node.id, serviceData);
 
       expect(mockCheckPort).toHaveBeenCalled();
@@ -264,7 +266,7 @@ describe('TCP Services Service', () => {
         [
           `/etc/nginx/stream.d/n${node.id}s${result.id}_stream.conf`,
           expect.stringContaining(
-            ` /etc/nginx/ssl/${serviceData.domain}/privkey`,
+            ` /etc/nginx/ssl/${serviceData.domain}/privkey.key;`,
           ),
         ],
       ]);
@@ -298,6 +300,8 @@ describe('TCP Services Service', () => {
           return true;
         }),
       );
+
+      await domainService.createDomainIfNotExists(serviceData.domain as string);
 
       const result = await service.createTcpService(node.id, serviceData);
 

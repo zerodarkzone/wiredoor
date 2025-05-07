@@ -69,4 +69,9 @@ export const httpServiceValidator: ObjectSchema<HttpServiceType> = Joi.object({
     .items(Joi.string().ip({ cidr: 'optional' }).optional())
     .allow(null)
     .optional(),
+  requireAuth: Joi.boolean().when('domain', {
+    is: Joi.string().domain(),
+    then: Joi.boolean().allow(null).optional(),
+    otherwise: Joi.boolean().valid(false).allow(null).optional(),
+  }),
 }).or('domain', 'pathLocation');

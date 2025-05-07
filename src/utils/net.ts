@@ -1,8 +1,10 @@
 import { readFile } from 'fs/promises';
 import net from 'net';
+import tls from 'tls';
 import dns from 'dns';
 import CLI from './cli';
 import config from '../config';
+import { Resolver } from 'dns/promises';
 
 export default class Net {
   static async addRoute(
@@ -126,29 +128,72 @@ export default class Net {
     );
   }
 
+  static async getAvailableLocalPort(
+    knownPorts: number[],
+    min: number,
+    max: number,
+  ): Promise<number> {
+    const usedPorts = new Set(knownPorts);
+
+    const rangeSize = max - min + 1;
+
+    if (usedPorts.size >= rangeSize) {
+      throw new Error(
+        `No ports avaliable in range from ${min} to ${max} to expose your service.`,
+      );
+    }
+
+    let port: number = null;
+
+    for (let i = min; i <= max; i++) {
+      if (!usedPorts.has(i)) {
+        const used = await this.checkPort('127.0.0.1', i, null, null, 500);
+        if (!used) {
+          port = i;
+          break;
+        }
+      }
+    }
+
+    return port;
+  }
+
   static async checkPort(
     host: string,
     port: number,
     resolver?: string,
+    ssl?: boolean,
     timeout = 3000,
   ): Promise<boolean> {
-    let customResolver = null;
-
     if (resolver) {
-      // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-      customResolver = (hostname, options, callback) => {
-        dns.resolve4(hostname, (err, addresses) => {
-          if (err) {
-            return callback(err);
-          }
-
-          callback(null, addresses[0], 4);
-        });
-      };
+      const dnsResolver = new Resolver();
+      dnsResolver.setServers([resolver]);
+      const [resolved] = await dnsResolver.resolve4(host);
+      host = resolved;
     }
 
     return new Promise((resolve) => {
-      const socket = new net.Socket();
+      let socket = new net.Socket();
+
+      if (ssl) {
+        socket = tls.connect(
+          {
+            host,
+            port,
+            rejectUnauthorized: true,
+          },
+          () => {
+            socket.end();
+            resolve(true);
+          },
+        );
+      } else {
+        socket = socket.connect({
+          host,
+          port,
+        });
+      }
+
       socket.setTimeout(timeout);
 
       socket.on('connect', () => {
@@ -164,12 +209,6 @@ export default class Net {
       socket.on('error', () => {
         socket.destroy();
         resolve(false);
-      });
-
-      socket.connect({
-        host,
-        port,
-        lookup: customResolver,
       });
     });
   }
