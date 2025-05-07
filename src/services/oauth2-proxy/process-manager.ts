@@ -15,7 +15,7 @@ const getGeneratedKey = (domain: string): string => {
     }
     const newKey = randomBytes(64).toString('base64').substring(0, 32);
 
-    fs.writeFileSync(filePath, newKey, { mode: 0o600 });
+    FileManager.saveToFile(filePath, newKey, 'utf-8', 0o600);
     return newKey;
   } catch (error) {
     console.error('Error loading or generating JWT key:', error);
@@ -30,13 +30,18 @@ export class ProcessManager {
   ): Promise<void> {
     const secret = getGeneratedKey(domain.domain);
 
-    fs.mkdirSync('/opt/oauth2-proxy', { recursive: true });
-    fs.mkdirSync(`${config.nginx.logs}/${domain.domain}`, { recursive: true });
-    fs.writeFileSync(
-      `/opt/oauth2-proxy/${domain.domain}-emails`,
-      domain.oauth2Config.allowedEmails.join('\n'),
-      { mode: 0o644 },
-    );
+    FileManager.mkdirSync('/opt/oauth2-proxy');
+    FileManager.mkdirSync(`${config.nginx.logs}/${domain.domain}`);
+    const hasEmails =
+      domain.oauth2Config.allowedEmails && domain.oauth2Config.allowedEmails[0];
+    if (hasEmails) {
+      await FileManager.saveToFile(
+        `/opt/oauth2-proxy/${domain.domain}-emails`,
+        domain.oauth2Config.allowedEmails.join('\n'),
+        'utf-8',
+        0o644,
+      );
+    }
 
     const processFile = `[program:oauth2-proxy-d${domain.id}]
 command=sh -c 'source /etc/environment && /usr/bin/oauth2-proxy'
@@ -45,7 +50,7 @@ environment=
   OAUTH2_PROXY_COOKIE_DOMAINS="${domain.domain}",
   OAUTH2_PROXY_COOKIE_SECRET="${secret}",
   OAUTH2_PROXY_REDIRECT_URL="https://${domain.domain}/oauth2/callback",
-  OAUTH2_PROXY_AUTHENTICATED_EMAILS_FILE="/opt/oauth2-proxy/${domain.domain}-emails"
+  ${hasEmails ? 'OAUTH2_PROXY_AUTHENTICATED_EMAILS_FILE="/opt/oauth2-proxy/${domain.domain}-emails' : ''}"
 autorestart=true
 stopsignal=KILL
 stopasgroup=true
@@ -55,10 +60,11 @@ redirect_stdout=true
 stdout_logfile=${config.nginx.logs}/${domain.domain}/oauth2-proxy.stdout.log
 stderr_logfile=${config.nginx.logs}/${domain.domain}/oauth2-proxy.stderr.log`;
 
-    fs.writeFileSync(
+    await FileManager.saveToFile(
       `/etc/supervisor/conf.d/oauth2-proxy-d${domain.id}.conf`,
       processFile,
-      { mode: 0o644 },
+      'utf-8',
+      0o644,
     );
 
     if (restart) {

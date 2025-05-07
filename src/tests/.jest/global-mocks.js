@@ -1,3 +1,4 @@
+const { faker } = require('@faker-js/faker');
 const jwt = require('jsonwebtoken');
 const { default: config } = require('src/config');
 
@@ -73,6 +74,15 @@ const mockCheckCname = jest.fn(() => {
 const mockCheckPort = jest.fn(() => {
   return true;
 });
+const mockGetAvailablePort = jest.fn((arr, min, max) => {
+  let port = faker.number.int({ min, max });
+
+  while (arr.includes(port)) {
+    port = faker.number.int({ min, max });
+  }
+
+  return port;
+});
 
 jest.mock('../../utils/cli.ts', () => {
   return {
@@ -89,6 +99,8 @@ jest.mock('../../utils/net.ts', () => {
     checkCNAME: mockCheckCname,
     lookupIncludesThisServer: mockNslookup,
     isIPForwardEnabled: jest.fn(),
+    getAvailablePort: mockGetAvailablePort,
+    getAvailableLocalPort: mockGetAvailablePort,
     checkPort: mockCheckPort,
   };
 });
@@ -165,5 +177,6 @@ module.exports = {
   mockNslookup,
   mockCheckCname,
   mockCheckPort,
+  mockGetAvailablePort,
   mockAuthenticatedToken,
 };

@@ -30,6 +30,7 @@ export class DomainRepository extends BaseRepository<Domain> {
         max,
       );
     } catch (e: any) {
+      console.error(e);
       throw new ValidationError({
         body: [
           {
