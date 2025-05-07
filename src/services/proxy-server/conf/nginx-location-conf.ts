@@ -8,6 +8,27 @@ export class NginxLocationConf extends NginxConf {
   setAuthRequired(): NginxLocationConf {
     this.addBlock('include', 'partials/require_oauth2.conf');
 
+    if (process.env.OAUTH2_PROXY_SET_XAUTHREQUEST === 'true') {
+      this.addBlock(
+        'auth_request_set $user',
+        '$upstream_http_x_auth_request_user',
+      );
+      this.addBlock(
+        'auth_request_set $email',
+        '$upstream_http_x_auth_request_email',
+      );
+      this.addBlock('proxy_set_header X-User', '$user');
+      this.addBlock('proxy_set_header X-Email', '$email');
+    }
+
+    if (process.env.OAUTH2_PROXY_PASS_ACCESS_TOKEN === 'true') {
+      this.addBlock(
+        'auth_request_set $token',
+        '$upstream_http_x_auth_request_access_token',
+      );
+      this.addBlock('proxy_set_header X-Access-Token', '$token');
+    }
+
     return this;
   }
 
