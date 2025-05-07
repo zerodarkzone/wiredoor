@@ -36,7 +36,7 @@ export const httpLogger = pinoHttp({
       );
 
       if (url.searchParams.has('token')) {
-        url.searchParams.set('token', '[REDACTED]');
+        url.searchParams.set('token', 'REDACTED');
       }
       return {
         method: req.method,
