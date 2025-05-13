@@ -56,10 +56,7 @@ export const httpServiceValidator: ObjectSchema<HttpServiceType> = Joi.object({
     .optional(),
   pathLocation: Joi.string().pattern(/^\/.*/).optional(),
   backendProto: Joi.string().valid('http', 'https').allow(null).optional(),
-  backendHost: Joi.string()
-    .allow(null)
-    .invalid('localhost', '127.0.0.1')
-    .optional(),
+  backendHost: Joi.string().allow(null).invalid('localhost').optional(),
   backendPort: Joi.number().port().optional(),
   allowedIps: Joi.array()
     .items(Joi.string().ip({ cidr: 'optional' }).optional())
