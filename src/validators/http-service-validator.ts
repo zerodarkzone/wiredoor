@@ -15,6 +15,11 @@ export const validateServiceDomain = async (c: string): Promise<string> => {
   return nslookupResolvesServerIp(c);
 };
 
+export const ttlValidator = Joi.string()
+  .pattern(/^\d+\s*(s|m|h|d)$/)
+  .message('TTL must be a string like "30s", "10m", "2h", "1d"')
+  .optional();
+
 export interface HttpServiceType {
   name: string;
   domain?: string;
@@ -25,6 +30,8 @@ export interface HttpServiceType {
   allowedIps?: string[];
   blockedIps?: string[];
   enabled?: boolean;
+  ttl?: string;
+  expiresAt?: Date;
 }
 
 export interface HttpServiceFilterQueryParams extends FilterQueryDto {
@@ -71,4 +78,5 @@ export const httpServiceValidator: ObjectSchema<HttpServiceType> = Joi.object({
     then: Joi.boolean().allow(null).optional(),
     otherwise: Joi.boolean().valid(false).allow(null).optional(),
   }),
+  ttl: ttlValidator,
 }).or('domain', 'pathLocation');
