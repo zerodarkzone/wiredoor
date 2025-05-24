@@ -88,7 +88,7 @@ const wiredoorMainPage = 'https://www.wiredoor.net'
 
           <div class="flex justify-center items-center mt-4 space-x-4">
             <a
-              href="https://github.com/sponsors/dmesad"
+              href="https://github.com/sponsors/wiredoor"
               target="_blank"
               class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 transition"
             >
