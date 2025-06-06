@@ -8,7 +8,7 @@ RUN curl -s https://install.crowdsec.net | sh
 # Use apt-get instead of apk, update package list, install packages, then clean up
 RUN apt-get update && apt-get install -y --no-install-recommends \
   iptables gawk dpkg tzdata \
-  wireguard-tools tcpdump nginx libnginx-mod-stream supervisor openssl certbot cron curl bash nano git rsync sqlite3 \
+  wireguard-tools tcpdump nginx libnginx-mod-stream supervisor openssl certbot cron curl bash \
   iputils-ping lua5.1 libnginx-mod-http-lua luarocks gettext-base lua-cjson crowdsec-nginx-bouncer \
   && rm -rf /var/lib/apt/lists/*
 
