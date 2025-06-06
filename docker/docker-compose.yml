@@ -1,6 +1,6 @@
 services:
   wiredoor:
-    image: ghcr.io/wiredoor/wiredoor:latest
+    image: zerodarkzone/wiredoor:latest
     container_name: wiredoor
     cap_add:
       - NET_ADMIN
@@ -8,13 +8,80 @@ services:
       - .env
     restart: unless-stopped
     volumes:
-      - ./wiredoor-data:/data
-      - ./wiredoor-certbot:/etc/letsencrypt
-      # - ./wiredoor-logs:/var/log/nginx       # <--- Optional: Mount for collecting NGINX logs
+      - wiredoor-data:/data
+      - wiredoor-certbot:/etc/letsencrypt
+      - wiredoor-logs:/var/log/nginx        # <--- Optional: Mount for collecting NGINX logs
+      - wiredoor-crowdsec:/etc/crowdsec
     ports:
       - 80:80/tcp
       - 443:443/tcp
       - 51820:51820/udp                        # Must match with VPN_PORT in .env
-    #      - 32760-32767                       # Must match with TCP_SERVICES_PORT_RANGE in .env
+      # - 32760-32767:32760-32767                # Must match with TCP_SERVICES_PORT_RANGE in .env
     sysctls:
       - net.ipv4.ip_forward=1
+    networks:
+      - wiredoor-network
+
+  crowdsec:
+    command: -t
+    container_name: crowdsec
+    environment:
+      COLLECTIONS: crowdsecurity/nginx crowdsecurity/appsec-virtual-patching crowdsecurity/appsec-generic-rules
+      ENROLL_TAGS: docker
+      GID: "1000"
+      PARSERS: crowdsecurity/whitelists
+    healthcheck:
+      interval: 10s
+      retries: 15
+      test:
+        - CMD
+        - cscli
+        - capi
+        - status
+      timeout: 10s
+    image: crowdsecurity/crowdsec:latest
+    ports:
+      - "127.0.0.1:6060:6060"
+      - "127.0.0.1:8080:8080"
+    restart: unless-stopped
+    volumes:
+      - crowdsec-config:/etc/crowdsec
+      - crowdsec-db:/var/lib/crowdsec/data
+      - wiredoor-logs:/var/log/nginx
+    networks:
+      - wiredoor-network
+
+volumes:
+  wiredoor-data:
+    driver_opts:
+      type: none
+      device: /root/config/wiredoor-data
+      o: bind
+  wiredoor-certbot:
+    driver_opts:
+      type: none
+      device: /root/config/wiredoor-certbot
+      o: bind
+  wiredoor-logs:
+    driver_opts:
+      type: none
+      device: /root/config/wiredoor-logs
+      o: bind
+  wiredoor-crowdsec:
+    driver_opts:
+      type: none
+      device: /root/config/wiredoor-crowdsec
+      o: bind
+  crowdsec-config:
+    driver_opts:
+      type: none
+      device: /root/config/crowdsec-config
+      o: bind
+  crowdsec-db:
+    driver_opts:
+      type: none
+      device: /root/config/crowdsec-db
+      o: bind
+
+networks:
+  wiredoor-network:
