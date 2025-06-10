@@ -89,6 +89,6 @@ COPY --chown=node:node --from=uibuild /app/dist /app/dist/public
 
 VOLUME ["/etc/letsencrypt","/data"]
 
-CMD [ "sh", "-c", "env > /etc/environment && exec /usr/bin/supervisord -ns -c /etc/supervisor/supervisord.conf" ]
+CMD [ "sh", "-c", "printenv | awk -F= '{ printf(\"%s=\\\"%s\\\"\\n\", \$1, \$2) }' > /etc/environment && exec /usr/bin/supervisord -ns -c /etc/supervisor/supervisord.conf" ]
 
 # USER node
