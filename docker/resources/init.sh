@@ -1,4 +1,8 @@
-#!/bin/sh
+#!/bin/bash
 set -e
-env | awk -F= '{ printf("%s=\"%s\"\n", $1, $2) }' > /etc/environment
+
+env | while IFS='=' read -r key value; do
+  printf 'export %s=%q\n' "$key" "$value"
+done > /etc/environment
+
 exec /usr/bin/supervisord -ns -c /etc/supervisor/supervisord.conf
