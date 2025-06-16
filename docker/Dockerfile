@@ -1,7 +1,9 @@
 FROM node:20-bookworm AS base
 
 WORKDIR /app
+
 ARG VERSION=1.0.0
+
 ENV TZ=America/New_York
 
 RUN curl -s https://install.crowdsec.net | sh
@@ -49,6 +51,7 @@ RUN npm install
 COPY --chown=node:node . .
 
 FROM base AS build
+
 ARG OAUTH2PROXY_VERSION="7.9.0"
 
 # Install curl if missing, which we already included in base now, but keeping here in case
@@ -59,22 +62,31 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl \
   && mv ./oauth2-proxy-v${OAUTH2PROXY_VERSION}.linux-amd64/oauth2-proxy /usr/bin/oauth2-proxy
 
 COPY --chown=node:node package*.json ./
+
 COPY --chown=node:node --from=development /app/node_modules ./node_modules
+
 COPY --chown=node:node . .
 
 RUN npm run build
+
 RUN npm ci --omit=dev && npm cache clean --force
 
 FROM node:20-bookworm AS uibuild
+
 WORKDIR /app
+
 COPY --chown=node:node frontend/package*.json ./
+
 RUN npm install
+
 COPY --chown=node:node frontend/. .
+
 RUN npm run build
 
 FROM base AS production
 
 ENV NODE_ENV=production
+
 LABEL org.opencontainers.image.licenses=MIT \
       org.opencontainers.image.description="Self hosted ingress-as-a-service platform that allows you to expose applications and services running in private or local networks to the internet" \
       org.opencontainers.image.documentation=https://www.wiredoor.net/docs \
@@ -87,9 +99,12 @@ COPY --from=build /usr/bin/oauth2-proxy /usr/bin/oauth2-proxy
 COPY --chown=node:node --from=build /app/node_modules /app/node_modules
 COPY --chown=node:node --from=build /app/dist /app/dist
 COPY --chown=node:node --from=uibuild /app/dist /app/dist/public
+COPY --chown=node:node docker/resources/init.sh /init.sh
+
+RUN chmod +x /init.sh
 
 VOLUME ["/etc/letsencrypt","/data"]
 
-CMD [ "bash", "-c", "env > /etc/environment && exec /usr/bin/supervisord -ns -c /etc/supervisor/supervisord.conf" ]
+CMD [ "/init.sh" ]
 
 # USER node

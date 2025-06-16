@@ -17,6 +17,7 @@ export const validateServiceDomain = async (c: string): Promise<string> => {
 
 export const ttlValidator = Joi.string()
   .pattern(/^\d+\s*(s|m|h|d)$/)
+  .allow('')
   .message('TTL must be a string like "30s", "10m", "2h", "1d"')
   .optional();
 
